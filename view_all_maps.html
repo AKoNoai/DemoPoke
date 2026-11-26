@@ -1,0 +1,2339 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POKEDAICHIEN - TRÌNH XEM BẢN ĐỒ 3D HOÀN CHỈNH (FULL 3D ASSEMBLED MAPS)</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
+        body { background: #070b14; color: #f1f5f9; padding: 20px; min-height: 100vh; }
+        header { text-align: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #1e293b; }
+        h1 { font-size: 27px; font-weight: 800; background: linear-gradient(135deg, #38bdf8, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; text-transform: uppercase; }
+        p.subtitle { color: #94a3b8; font-size: 14px; max-width: 920px; margin: 0 auto; line-height: 1.5; }
+
+        /* 3D Viewer Stage */
+        .viewer-container { max-width: 1560px; margin: 0 auto 26px; background: #0f172a; border: 2px solid #2563eb; border-radius: 16px; overflow: hidden; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7); }
+        .viewer-topbar { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; background: #131d31; border-bottom: 1px solid #1e293b; flex-wrap: wrap; gap: 10px; }
+        .viewer-title-box { display: flex; align-items: center; gap: 12px; }
+        .live-badge { background: #10b981; color: #052e16; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .viewer-map-title { font-size: 18px; font-weight: 700; color: #f8fafc; }
+        .viewer-map-stats { font-size: 12px; color: #38bdf8; font-family: monospace; }
+
+        .viewer-controls { display: flex; gap: 8px; flex-wrap: wrap; }
+        .ctrl-btn { background: #1e293b; border: 1px solid #334155; color: #e2e8f0; padding: 7px 13px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.18s; display: flex; align-items: center; gap: 5px; }
+        .ctrl-btn:hover { background: #334155; color: #fff; border-color: #60a5fa; }
+        .ctrl-btn.active { background: #2563eb; border-color: #60a5fa; color: #fff; }
+
+        .canvas-wrap { position: relative; width: 100%; height: 560px; background: radial-gradient(circle at 50% 35%, #1e3a5f 0%, #09101d 100%); }
+        #map3dCanvas { width: 100%; height: 100%; display: block; cursor: grab; }
+        #map3dCanvas:active { cursor: grabbing; }
+
+        .loading-overlay { position: absolute; inset: 0; background: rgba(9, 16, 29, 0.82); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; z-index: 10; transition: opacity 0.25s; }
+        .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+        .spinner { width: 42px; height: 42px; border: 4px solid #1e293b; border-top-color: #38bdf8; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { font-size: 15px; font-weight: 600; color: #38bdf8; }
+
+        .canvas-hud { position: absolute; bottom: 12px; left: 16px; background: rgba(15, 23, 42, 0.85); border: 1px solid #334155; padding: 8px 14px; border-radius: 10px; font-size: 12px; color: #cbd5e1; pointer-events: none; display: flex; gap: 16px; flex-wrap: wrap; }
+        .canvas-hud span strong { color: #38bdf8; }
+
+        /* Quick Map Selector Pills */
+        .quick-bar { display: flex; gap: 8px; padding: 10px 16px; background: #0b111e; border-top: 1px solid #1e293b; overflow-x: auto; }
+        .pill-btn { background: #131d31; border: 1px solid #27354f; color: #94a3b8; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+        .pill-btn:hover { background: #1e2e4f; color: #fff; }
+        .pill-btn.active { background: #2563eb; border-color: #60a5fa; color: #fff; }
+
+        /* Stats & Filter Tabs */
+        .tabs { display: flex; justify-content: center; gap: 10px; margin: 18px 0; flex-wrap: wrap; }
+        .tab-btn { background: #131d31; border: 1px solid #27354f; color: #94a3b8; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; }
+        .tab-btn:hover { background: #1e2e4f; color: #fff; }
+        .tab-btn.active { background: #2563eb; border-color: #60a5fa; color: #fff; }
+
+        .search-box { max-width: 550px; margin: 0 auto 22px; position: relative; }
+        .search-box input { width: 100%; padding: 12px 18px 12px 42px; border-radius: 12px; border: 1px solid #27354f; background: #131d31; color: #fff; font-size: 14px; outline: none; }
+        .search-box input:focus { border-color: #38bdf8; }
+        .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #64748b; }
+
+        /* Grid */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 18px; max-width: 1560px; margin: 0 auto; }
+        .card { background: #131d31; border: 1px solid #202e48; border-radius: 14px; padding: 16px; transition: all 0.22s; display: flex; flex-direction: column; }
+        .card:hover { transform: translateY(-4px); border-color: #38bdf8; box-shadow: 0 10px 24px rgba(0,0,0,0.5); }
+        .card.playing { border: 2px solid #10b981; box-shadow: 0 0 20px rgba(16, 185, 129, 0.25); }
+
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 6px; text-transform: uppercase; }
+        .badge-city { background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); }
+        .badge-world { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+        .badge-battle { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+        .upk-tag { font-size: 12px; color: #64748b; font-family: monospace; font-weight: bold; }
+
+        .card-title { font-size: 17px; font-weight: 700; color: #f8fafc; margin-bottom: 6px; }
+        .card-desc { font-size: 12.5px; color: #94a3b8; margin-bottom: 12px; line-height: 1.4; flex-grow: 1; }
+
+        .preview-box { width: 100%; height: 175px; background: #090e17; border-radius: 10px; margin-bottom: 12px; overflow: hidden; border: 1px solid #1e293b; position: relative; cursor: pointer; }
+        .preview-box img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+        .preview-box:hover img { transform: scale(1.05); }
+        .play-overlay { position: absolute; inset: 0; background: rgba(37, 99, 235, 0.35); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; font-weight: 700; font-size: 14px; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+        .preview-box:hover .play-overlay { opacity: 1; }
+
+        .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; background: #0a0e17; padding: 9px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #1a2538; text-align: center; }
+        .stat-item .num { font-size: 15px; font-weight: 800; color: #f8fafc; }
+        .stat-item .lbl { font-size: 10.5px; color: #64748b; margin-top: 2px; }
+
+        .merged-file-box { font-size: 11.5px; color: #10b981; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); padding: 7px 10px; border-radius: 7px; margin-bottom: 12px; font-family: monospace; word-break: break-all; }
+
+        .btn-group { display: flex; gap: 8px; margin-top: auto; }
+        .btn { flex: 1; padding: 9px 10px; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer; border: none; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; text-decoration: none; }
+        .btn-3d { background: linear-gradient(135deg, #2563eb, #4f46e5); color: #fff; }
+        .btn-3d:hover { background: linear-gradient(135deg, #1d4ed8, #4338ca); box-shadow: 0 0 14px rgba(37, 99, 235, 0.5); }
+        .btn-secondary { background: #1e293b; color: #cbd5e1; border: 1px solid #334155; flex: 0.65; }
+        .btn-secondary:hover { background: #334155; color: #fff; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>POKEDAICHIEN - BẢN ĐỒ 3D HOÀN CHỈNH ĐÃ GHÉP (FULL ASSEMBLED 3D MAPS)</h1>
+        <p class="subtitle">
+            Toàn bộ các mảnh địa hình, vách đá, sông thác, cầu treo, tòa nhà, Viện Nghiên Cứu, Máy Quay Trứng, Đạo Quán, cây cối và hàng rào đã được <strong>ghép nối tự động theo tọa độ PersistentLevel gốc thành 1 file Bản Đồ 3D Hoàn Chỉnh duy nhất (.glb & .gltf)</strong> với đầy đủ lá cây trong suốt và 100% màu sắc.
+        </p>
+    </header>
+
+    <!-- KHUNG XEM BẢN ĐỒ 3D HOÀN CHỈNH TRỰC TIẾP TRÊN WEB -->
+    <div class="viewer-container" id="viewerSection">
+        <div class="viewer-topbar">
+            <div class="viewer-title-box">
+                <span class="live-badge">3D LIVE</span>
+                <div>
+                    <div class="viewer-map-title" id="activeMapTitle">Đang tải bản đồ 3D hoàn chỉnh...</div>
+                    <div class="viewer-map-stats" id="activeMapStats">Khởi tạo WebGL 3D Engine...</div>
+                </div>
+            </div>
+            <div class="viewer-controls">
+                <button class="ctrl-btn" onclick="resetCamera()">🎯 Góc Nhìn Chuẩn Trong Game</button>
+                <button class="ctrl-btn" id="btnAutoRot" onclick="toggleAutoRotate()">🔄 Tự Xoay 360°</button>
+                <button class="ctrl-btn" id="btnWireframe" onclick="toggleWireframe()">🕸️ Khung Dây</button>
+                <button class="ctrl-btn" onclick="zoomCamera(0.8)">➕ Phóng To</button>
+                <button class="ctrl-btn" onclick="zoomCamera(1.25)">➖ Thu Nhỏ</button>
+                <button class="ctrl-btn" onclick="toggleFullscreen()">⛶ Toàn Màn Hình</button>
+            </div>
+        </div>
+
+        <div class="canvas-wrap" id="canvasWrap">
+            <canvas id="map3dCanvas"></canvas>
+            <div class="loading-overlay" id="loadingOverlay">
+                <div class="spinner"></div>
+                <div class="loading-text" id="loadingText">Đang ghép & nạp Bản Đồ 3D Hoàn Chỉnh...</div>
+            </div>
+            <div class="canvas-hud">
+                <span>🖱️ <strong>Chuột trái + Kéo:</strong> Xoay 360°</span>
+                <span>🖱️ <strong>Chuột phải + Kéo (hoặc Shift + Chuột trái):</strong> Di chuyển ngang (Pan)</span>
+                <span>🖱️ <strong>Con lăn chuột:</strong> Phóng to / Thu nhỏ (Zoom)</span>
+            </div>
+        </div>
+
+        <div class="quick-bar" id="quickBar"></div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="filterCategory('all', this)">🌐 Tất Cả 21 Bản Đồ Đã Ghép</button>
+        <button class="tab-btn" onclick="filterCategory('Chu_Thanh', this)">🏙️ Chủ Thành & Thị Trấn (4)</button>
+        <button class="tab-btn" onclick="filterCategory('Dai_Ban_Do_The_Gioi', this)">🗺️ Đại Bản Đồ Thế Giới (10)</button>
+        <button class="tab-btn" onclick="filterCategory('Chien_Truong_Va_Gia_Vien', this)">⚔️ Đạo Trường & Chiến Trường (7)</button>
+    </div>
+
+    <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Tìm bản đồ 3D đã ghép (Chủ thành, Viện nghiên cứu, Làng tân thủ, Mê cảnh, Núi tuyết...)" oninput="handleSearch()">
+    </div>
+
+    <div class="grid" id="mapGrid"></div>
+
+    <script>
+        const mapsData = [
+  {
+    "name": "Trung Tâm Chủ Thành (Center City)",
+    "category": "Chu_Thanh",
+    "subfolder": "01_Trung_Tam_Chu_Thanh",
+    "upk": "2788425833.upk",
+    "gltf_count": 101,
+    "patched_count": 94,
+    "tex_count": 158,
+    "desc": "Các tòa cao ốc, Đạo quán Băng/Cỏ/Điện/Lửa/Nước/Đất, Ga tàu, Cầu vượt, Đường phố chính",
+    "path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\exported_city\\01_Trung_Tam_Chu_Thanh",
+    "preview_img": "Ban_Do_Hoan_Chinh_3D/previews/01_01_Trung_Tam_Chu_Thanh.png",
+    "primary_mesh": "HT_DaZhuCheng_shuzu02",
+    "all_meshes": [
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh"
+    ],
+    "sample_meshes": [
+      "HT_DaZhuCheng_shuzu02",
+      "HT_DaZhuCheng_Shu03",
+      "HT_DaZhuCheng_Cao",
+      "HT_CJ_ZhuCheng_GangXiDaoGuan",
+      "HT_CJ_ZhuCheng_YanJiuSuo",
+      "HT_CJ_ZhuCheng_ShuiXiDaoGuan"
+    ],
+    "merged_map_id": "01_01_Trung_Tam_Chu_Thanh",
+    "placed_objects": 448,
+    "total_verts": 175843,
+    "total_tris": 152823,
+    "merged_glb_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\01_01_Trung_Tam_Chu_Thanh.glb",
+    "merged_gltf_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\01_01_Trung_Tam_Chu_Thanh.gltf",
+    "merged_js_rel": "Ban_Do_Hoan_Chinh_3D/js_data/01_01_Trung_Tam_Chu_Thanh.js",
+    "glb_size_kb": 12313.4
+  },
+  {
+    "name": "Ngoại Vi & Viện Nghiên Cứu (Research Lab)",
+    "category": "Chu_Thanh",
+    "subfolder": "02_Ngoai_Vi_Vien_Nghien_Cuu",
+    "upk": "3757292458.upk",
+    "gltf_count": 54,
+    "patched_count": 50,
+    "tex_count": 90,
+    "desc": "Khu nhà ở dân cư, Viện nghiên cứu giáo sư, Phố xá ngoại vi, Bảng tin, Cây xanh",
+    "path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\exported_city\\02_Ngoai_Vi_Vien_Nghien_Cuu",
+    "preview_img": "Ban_Do_Hoan_Chinh_3D/previews/02_02_Ngoai_Vi_Vien_Nghien_Cuu.png",
+    "primary_mesh": "HT_XinShouCun_LuYa",
+    "all_meshes": [
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh"
+    ],
+    "sample_meshes": [
+      "HT_XinShouCun_LuYa",
+      "HT_XinShouCun_WeiLan",
+      "HT_XinShouCun_Shu02",
+      "HT_XinShouCun_XiaoWuJian01",
+      "HT_XinShouCun_Hua05",
+      "HT_XinShouCun_Cao"
+    ],
+    "merged_map_id": "02_02_Ngoai_Vi_Vien_Nghien_Cuu",
+    "placed_objects": 64,
+    "total_verts": 75643,
+    "total_tris": 53586,
+    "merged_glb_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\02_02_Ngoai_Vi_Vien_Nghien_Cuu.glb",
+    "merged_gltf_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\02_02_Ngoai_Vi_Vien_Nghien_Cuu.gltf",
+    "merged_js_rel": "Ban_Do_Hoan_Chinh_3D/js_data/02_02_Ngoai_Vi_Vien_Nghien_Cuu.js",
+    "glb_size_kb": 6225.9
+  },
+  {
+    "name": "Dân Cư & Thương Nhân Thành Phố",
+    "category": "Chu_Thanh",
+    "subfolder": "03_Dan_Cu_Va_NPC_1",
+    "upk": "4060150713.upk",
+    "gltf_count": 7,
+    "patched_count": 2,
+    "tex_count": 43,
+    "desc": "NPC dân cư, chủ tiệm vật phẩm, người giao nhiệm vụ trong thành phố",
+    "path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\exported_city\\03_Dan_Cu_Va_NPC_1",
+    "preview_img": "Ban_Do_Hoan_Chinh_3D/previews/03_03_Dan_Cu_Va_NPC_1.png",
+    "primary_mesh": "HT_M_ALuoLaSanDiShu",
+    "all_meshes": [
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh"
+    ],
+    "sample_meshes": [
+      "HT_M_ALuoLaSanDiShu",
+      "SanDiShu",
+      "HT_M_GaiOuKa",
+      "dakelaiyi_ring_z02",
+      "caoxiyi_ring_z01"
+    ],
+    "merged_map_id": "03_03_Dan_Cu_Va_NPC_1",
+    "placed_objects": 95,
+    "total_verts": 143232,
+    "total_tris": 127792,
+    "merged_glb_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\03_03_Dan_Cu_Va_NPC_1.glb",
+    "merged_gltf_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\03_03_Dan_Cu_Va_NPC_1.gltf",
+    "merged_js_rel": "Ban_Do_Hoan_Chinh_3D/js_data/03_03_Dan_Cu_Va_NPC_1.js",
+    "glb_size_kb": 12552.1
+  },
+  {
+    "name": "Huấn Luyện Viên & Cảnh Sát Thành Phố",
+    "category": "Chu_Thanh",
+    "subfolder": "04_Dan_Cu_Va_NPC_2",
+    "upk": "1770845037.upk",
+    "gltf_count": 6,
+    "patched_count": 4,
+    "tex_count": 13,
+    "desc": "Sĩ quan Jenny, các huấn luyện viên thách đấu, nhân vật cốt truyện",
+    "path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\exported_city\\04_Dan_Cu_Va_NPC_2",
+    "preview_img": "Ban_Do_Hoan_Chinh_3D/previews/04_04_Dan_Cu_Va_NPC_2.png",
+    "primary_mesh": "HT_M_GaiOuKa",
+    "all_meshes": [
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "StaticMesh",
+      "StaticMesh"
+    ],
+    "sample_meshes": [
+      "HT_M_GaiOuKa",
+      "HT_M_BaoLiLong",
+      "HT_NPC_YanJiuSuoGongZuoRenYuan",
+      "HT_M_LiYuWang",
+      "cjphl_ring_z01",
+      "dakelaiyi_ring_z02"
+    ],
+    "merged_map_id": "04_04_Dan_Cu_Va_NPC_2",
+    "placed_objects": 501,
+    "total_verts": 282325,
+    "total_tris": 276315,
+    "merged_glb_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\04_04_Dan_Cu_Va_NPC_2.glb",
+    "merged_gltf_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\04_04_Dan_Cu_Va_NPC_2.gltf",
+    "merged_js_rel": "Ban_Do_Hoan_Chinh_3D/js_data/04_04_Dan_Cu_Va_NPC_2.js",
+    "glb_size_kb": 21202.5
+  },
+  {
+    "name": "Đại Bản Đồ Thế Giới - Kiến Trúc & Cột Mốc",
+    "category": "Dai_Ban_Do_The_Gioi",
+    "subfolder": "01_Kien_Truc_Va_Cot_Moc_The_Gioi",
+    "upk": "3046030216.upk",
+    "gltf_count": 67,
+    "patched_count": 61,
+    "tex_count": 57,
+    "desc": "Hệ thống công trình kiến trúc kết nối giữa các vùng đất, cột mốc địa lý, tuyến đường liên khu",
+    "path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\exported_maps\\01_Kien_Truc_Va_Cot_Moc_The_Gioi",
+    "preview_img": "Ban_Do_Hoan_Chinh_3D/previews/05_01_Kien_Truc_Va_Cot_Moc_The_Gioi.png",
+    "primary_mesh": "HT_ZuDuiDiTu_DiBiao06",
+    "all_meshes": [
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh"
+    ],
+    "sample_meshes": [
+      "HT_ZuDuiDiTu_DiBiao06",
+      "HT_DaDiTu02_JianZhu07",
+      "HT_DaDiTu02_JianZhu09",
+      "HT_M_YanDi",
+      "HT_DaDiTu02_JianZhu08",
+      "HT_M_DaiShou"
+    ],
+    "merged_map_id": "05_01_Kien_Truc_Va_Cot_Moc_The_Gioi",
+    "placed_objects": 156,
+    "total_verts": 60316,
+    "total_tris": 55394,
+    "merged_glb_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\05_01_Kien_Truc_Va_Cot_Moc_The_Gioi.glb",
+    "merged_gltf_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\05_01_Kien_Truc_Va_Cot_Moc_The_Gioi.gltf",
+    "merged_js_rel": "Ban_Do_Hoan_Chinh_3D/js_data/05_01_Kien_Truc_Va_Cot_Moc_The_Gioi.js",
+    "glb_size_kb": 4827.4
+  },
+  {
+    "name": "Đại Bản Đồ Thế Giới - Địa Hình Liên Lục Địa",
+    "category": "Dai_Ban_Do_The_Gioi",
+    "subfolder": "02_Dia_Hinh_Lien_Luc_Dia",
+    "upk": "2939722998.upk",
+    "gltf_count": 59,
+    "patched_count": 51,
+    "tex_count": 62,
+    "desc": "Các mảng địa hình đồi núi, sông ngòi, thung lũng trên toàn bản đồ thế giới",
+    "path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\exported_maps\\02_Dia_Hinh_Lien_Luc_Dia",
+    "preview_img": "Ban_Do_Hoan_Chinh_3D/previews/06_02_Dia_Hinh_Lien_Luc_Dia.png",
+    "primary_mesh": "HT_DaDiTu02_guanjunzhilu",
+    "all_meshes": [
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh"
+    ],
+    "sample_meshes": [
+      "HT_DaDiTu02_guanjunzhilu",
+      "HT_DaDiTu02_AoTuShanDao",
+      "HT_DaDiTu02_MiMiHuaTian",
+      "HT_DaDiTu02_DiBiao01",
+      "HT_DaDiTu02_DiBiao02",
+      "HT_DaDiTu02_LiuXingPuBu"
+    ],
+    "merged_map_id": "06_02_Dia_Hinh_Lien_Luc_Dia",
+    "placed_objects": 156,
+    "total_verts": 31980,
+    "total_tris": 26724,
+    "merged_glb_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\06_02_Dia_Hinh_Lien_Luc_Dia.glb",
+    "merged_gltf_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\06_02_Dia_Hinh_Lien_Luc_Dia.gltf",
+    "merged_js_rel": "Ban_Do_Hoan_Chinh_3D/js_data/06_02_Dia_Hinh_Lien_Luc_Dia.js",
+    "glb_size_kb": 4185.4
+  },
+  {
+    "name": "Liên Minh Pokemon & Đạo Trường Tối Cao",
+    "category": "Dai_Ban_Do_The_Gioi",
+    "subfolder": "03_Lien_Minh_Pokemon",
+    "upk": "2060720177.upk",
+    "gltf_count": 70,
+    "patched_count": 64,
+    "tex_count": 73,
+    "desc": "Khu vực thi đấu Pokemon League đỉnh cao, cổng vào hang động bí mật",
+    "path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\exported_maps\\03_Lien_Minh_Pokemon",
+    "preview_img": "Ban_Do_Hoan_Chinh_3D/previews/07_03_Lien_Minh_Pokemon.png",
+    "primary_mesh": "HT_DaDiTu02_guanjunzhilu",
+    "all_meshes": [
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh"
+    ],
+    "sample_meshes": [
+      "HT_DaDiTu02_guanjunzhilu",
+      "HT_M_YanDi",
+      "HT_DaDiTu02_AoTuShanDao",
+      "HT_DaDiTu02_MiMiHuaTian",
+      "HT_M_DaiShou",
+      "HT_M_FeiTianTangLang"
+    ],
+    "merged_map_id": "07_03_Lien_Minh_Pokemon",
+    "placed_objects": 170,
+    "total_verts": 51396,
+    "total_tris": 53318,
+    "merged_glb_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\07_03_Lien_Minh_Pokemon.glb",
+    "merged_gltf_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\07_03_Lien_Minh_Pokemon.gltf",
+    "merged_js_rel": "Ban_Do_Hoan_Chinh_3D/js_data/07_03_Lien_Minh_Pokemon.js",
+    "glb_size_kb": 5825.5
+  },
+  {
+    "name": "Núi Tuyết GuGu & Đồng Cỏ Cầu Vồng",
+    "category": "Dai_Ban_Do_The_Gioi",
+    "subfolder": "04_Nui_Tuyet_Dong_Co_Cau_Vong",
+    "upk": "909158061.upk",
+    "gltf_count": 56,
+    "patched_count": 47,
+    "tex_count": 97,
+    "desc": "Vùng núi băng tuyết trắng xoá, cao nguyên và đồng cỏ cầu vồng rực rỡ",
+    "path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\exported_maps\\04_Nui_Tuyet_Dong_Co_Cau_Vong",
+    "preview_img": "Ban_Do_Hoan_Chinh_3D/previews/08_04_Nui_Tuyet_Dong_Co_Cau_Vong.png",
+    "primary_mesh": "HT_DaDiTu_JianXiaoHuoShan",
+    "all_meshes": [
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh"
+    ],
+    "sample_meshes": [
+      "HT_DaDiTu_JianXiaoHuoShan",
+      "HT_DaDiTu_DiBiao02",
+      "HT_DaDiTu_DiBiao03",
+      "HT_DaDiTu_XinShouCun",
+      "HT_DaDiTu_PoXiaoDaoYu",
+      "HT_DaDiTu_LeiMingXiaGu"
+    ],
+    "merged_map_id": "08_04_Nui_Tuyet_Dong_Co_Cau_Vong",
+    "placed_objects": 117,
+    "total_verts": 25179,
+    "total_tris": 21557,
+    "merged_glb_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\08_04_Nui_Tuyet_Dong_Co_Cau_Vong.glb",
+    "merged_gltf_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\08_04_Nui_Tuyet_Dong_Co_Cau_Vong.gltf",
+    "merged_js_rel": "Ban_Do_Hoan_Chinh_3D/js_data/08_04_Nui_Tuyet_Dong_Co_Cau_Vong.js",
+    "glb_size_kb": 2352.7
+  },
+  {
+    "name": "Núi Lửa Nham Thạch & Sa Mạc Cổ Đại",
+    "category": "Dai_Ban_Do_The_Gioi",
+    "subfolder": "05_Nui_Lua_Va_Sa_Mac_Co",
+    "upk": "3822854762.upk",
+    "gltf_count": 54,
+    "patched_count": 47,
+    "tex_count": 84,
+    "desc": "Vùng đất lửa cháy rực rỡ, hẻm núi nứt nẻ và đụn cát sa mạc",
+    "path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\exported_maps\\05_Nui_Lua_Va_Sa_Mac_Co",
+    "preview_img": "Ban_Do_Hoan_Chinh_3D/previews/09_05_Nui_Lua_Va_Sa_Mac_Co.png",
+    "primary_mesh": "HT_DaDiTu_JianXiaoHuoShan",
+    "all_meshes": [
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh"
+    ],
+    "sample_meshes": [
+      "HT_DaDiTu_JianXiaoHuoShan",
+      "HT_DaDiTu_DiBiao02",
+      "HT_DaDiTu_DiBiao03",
+      "HT_DaDiTu_XinShouCun",
+      "HT_DaDiTu_PoXiaoDaoYu",
+      "HT_DaDiTu_LeiMingXiaGu"
+    ],
+    "merged_map_id": "09_05_Nui_Lua_Va_Sa_Mac_Co",
+    "placed_objects": 118,
+    "total_verts": 25183,
+    "total_tris": 21559,
+    "merged_glb_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\09_05_Nui_Lua_Va_Sa_Mac_Co.glb",
+    "merged_gltf_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\09_05_Nui_Lua_Va_Sa_Mac_Co.gltf",
+    "merged_js_rel": "Ban_Do_Hoan_Chinh_3D/js_data/09_05_Nui_Lua_Va_Sa_Mac_Co.js",
+    "glb_size_kb": 2518.8
+  },
+  {
+    "name": "Quần Đảo Biển Sâu & Di Tích Cổ",
+    "category": "Dai_Ban_Do_The_Gioi",
+    "subfolder": "06_Quan_Dao_Bien_Sau",
+    "upk": "3979037403.upk",
+    "gltf_count": 19,
+    "patched_count": 15,
+    "tex_count": 38,
+    "desc": "Khu vực bờ biển nhiệt đới, rạn san hô và các di tích thần thoại",
+    "path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\exported_maps\\06_Quan_Dao_Bien_Sau",
+    "preview_img": "Ban_Do_Hoan_Chinh_3D/previews/10_06_Quan_Dao_Bien_Sau.png",
+    "primary_mesh": "HT_DaDiTu_JianXiaoHuoShan",
+    "all_meshes": [
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh"
+    ],
+    "sample_meshes": [
+      "HT_DaDiTu_JianXiaoHuoShan",
+      "HT_M_HeiYanE",
+      "HT_DaDiTu_DiBiao02",
+      "HT_DaDiTu_DiBiao03",
+      "HT_DaDiTu_LeiMingXiaGu",
+      "HT_DaDiTu_DiBiao04"
+    ],
+    "merged_map_id": "10_06_Quan_Dao_Bien_Sau",
+    "placed_objects": 42,
+    "total_verts": 11350,
+    "total_tris": 10886,
+    "merged_glb_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\10_06_Quan_Dao_Bien_Sau.glb",
+    "merged_gltf_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\10_06_Quan_Dao_Bien_Sau.gltf",
+    "merged_js_rel": "Ban_Do_Hoan_Chinh_3D/js_data/10_06_Quan_Dao_Bien_Sau.js",
+    "glb_size_kb": 954.5
+  },
+  {
+    "name": "Làng Tân Thủ (XinShouCun / Pallet Town)",
+    "category": "Dai_Ban_Do_The_Gioi",
+    "subfolder": "07_Lang_Tan_Thu_Pallet",
+    "upk": "3361758377.upk",
+    "gltf_count": 54,
+    "patched_count": 47,
+    "tex_count": 85,
+    "desc": "Ngôi làng khởi đầu bình yên của các nhà huấn luyện Pokemon",
+    "path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\exported_maps\\07_Lang_Tan_Thu_Pallet",
+    "preview_img": "Ban_Do_Hoan_Chinh_3D/previews/11_07_Lang_Tan_Thu_Pallet.png",
+    "primary_mesh": "HT_DaDiTu_JianXiaoHuoShan",
+    "all_meshes": [
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh"
+    ],
+    "sample_meshes": [
+      "HT_DaDiTu_JianXiaoHuoShan",
+      "HT_DaDiTu_DiBiao02",
+      "HT_DaDiTu_DiBiao03",
+      "HT_DaDiTu_XinShouCun",
+      "HT_DaDiTu_PoXiaoDaoYu",
+      "HT_DaDiTu_LeiMingXiaGu"
+    ],
+    "merged_map_id": "11_07_Lang_Tan_Thu_Pallet",
+    "placed_objects": 116,
+    "total_verts": 25081,
+    "total_tris": 21455,
+    "merged_glb_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\11_07_Lang_Tan_Thu_Pallet.glb",
+    "merged_gltf_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\11_07_Lang_Tan_Thu_Pallet.gltf",
+    "merged_js_rel": "Ban_Do_Hoan_Chinh_3D/js_data/11_07_Lang_Tan_Thu_Pallet.js",
+    "glb_size_kb": 2515.3
+  },
+  {
+    "name": "Rừng Hoa Cam & Đảo Núi Gồ Ghề",
+    "category": "Dai_Ban_Do_The_Gioi",
+    "subfolder": "08_Rung_Hoa_Cam_Dao_Go_Ghe",
+    "upk": "753655063.upk",
+    "gltf_count": 56,
+    "patched_count": 50,
+    "tex_count": 58,
+    "desc": "Khu bảo tồn thiên nhiên Petalburg Woods và quần đảo địa hình gồ ghề",
+    "path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\exported_maps\\08_Rung_Hoa_Cam_Dao_Go_Ghe",
+    "preview_img": "Ban_Do_Hoan_Chinh_3D/previews/12_08_Rung_Hoa_Cam_Dao_Go_Ghe.png",
+    "primary_mesh": "HT_DaDiTu02_guanjunzhilu",
+    "all_meshes": [
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh"
+    ],
+    "sample_meshes": [
+      "HT_DaDiTu02_guanjunzhilu",
+      "HT_DaDiTu02_AoTuShanDao",
+      "HT_DaDiTu02_MiMiHuaTian02",
+      "HT_DaDiTu02_DiBiao01",
+      "HT_DaDiTu02_DiBiao02",
+      "HT_DaDiTu02_LiuXingPuBu"
+    ],
+    "merged_map_id": "12_08_Rung_Hoa_Cam_Dao_Go_Ghe",
+    "placed_objects": 154,
+    "total_verts": 31972,
+    "total_tris": 26720,
+    "merged_glb_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\12_08_Rung_Hoa_Cam_Dao_Go_Ghe.glb",
+    "merged_gltf_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\12_08_Rung_Hoa_Cam_Dao_Go_Ghe.gltf",
+    "merged_js_rel": "Ban_Do_Hoan_Chinh_3D/js_data/12_08_Rung_Hoa_Cam_Dao_Go_Ghe.js",
+    "glb_size_kb": 4183.4
+  },
+  {
+    "name": "Cảnh Quan & Thảm Thực Vật Thiên Nhiên",
+    "category": "Dai_Ban_Do_The_Gioi",
+    "subfolder": "09_Canh_Quan_Thien_Nhien",
+    "upk": "3663962493.upk",
+    "gltf_count": 0,
+    "patched_count": 0,
+    "tex_count": 45,
+    "desc": "Rừng cây nguyên sinh, thác nước, thảm cỏ, hoa dại và chi tiết môi trường",
+    "path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\exported_maps\\09_Canh_Quan_Thien_Nhien",
+    "preview_img": "Ban_Do_Hoan_Chinh_3D/previews/13_09_Canh_Quan_Thien_Nhien.png",
+    "primary_mesh": "T_ZhenYin_DiMian04",
+    "all_meshes": [
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh"
+    ],
+    "sample_meshes": [
+      "T_ZhenYin_DiMian04",
+      "T_ZhenYin_DiMian03",
+      "T_ZhenYin_FangZi06",
+      "T_ZhenYin_FangZi11",
+      "T_ZhenYin_DiMian02",
+      "HT_M_LuoQiYa"
+    ],
+    "merged_map_id": "13_09_Canh_Quan_Thien_Nhien",
+    "placed_objects": 998,
+    "total_verts": 251704,
+    "total_tris": 233182,
+    "merged_glb_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\13_09_Canh_Quan_Thien_Nhien.glb",
+    "merged_gltf_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\13_09_Canh_Quan_Thien_Nhien.gltf",
+    "merged_js_rel": "Ban_Do_Hoan_Chinh_3D/js_data/13_09_Canh_Quan_Thien_Nhien.js",
+    "glb_size_kb": 13531.1
+  },
+  {
+    "name": "Khu Vực Thi Đấu League & Đầm Lầy",
+    "category": "Dai_Ban_Do_The_Gioi",
+    "subfolder": "10_Giai_Dau_League_Dam_Lay",
+    "upk": "1435605049.upk",
+    "gltf_count": 54,
+    "patched_count": 44,
+    "tex_count": 46,
+    "desc": "Chiến trường đầm lầy huyền bí và đấu trường thi đấu phân hạng",
+    "path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\exported_maps\\10_Giai_Dau_League_Dam_Lay",
+    "preview_img": "Ban_Do_Hoan_Chinh_3D/previews/14_10_Giai_Dau_League_Dam_Lay.png",
+    "primary_mesh": "HT_DaDiTu02_DiBiao01",
+    "all_meshes": [
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh"
+    ],
+    "sample_meshes": [
+      "HT_DaDiTu02_DiBiao01",
+      "HT_DaDiTu02_DiBiao02",
+      "HT_LeagueMatch_Hard_wujian13",
+      "HT_DaDiTu02_DiBiao03",
+      "HT_LeagueMatch_Hard_wujian11",
+      "HT_LeagueMatch_Hard_wujian14"
+    ],
+    "merged_map_id": "14_10_Giai_Dau_League_Dam_Lay",
+    "placed_objects": 189,
+    "total_verts": 39992,
+    "total_tris": 43051,
+    "merged_glb_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\14_10_Giai_Dau_League_Dam_Lay.glb",
+    "merged_gltf_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\14_10_Giai_Dau_League_Dam_Lay.gltf",
+    "merged_js_rel": "Ban_Do_Hoan_Chinh_3D/js_data/14_10_Giai_Dau_League_Dam_Lay.js",
+    "glb_size_kb": 3124.2
+  },
+  {
+    "name": "Gia Viên / Lâu Đài Thành Trì Người Chơi",
+    "category": "Chien_Truong_Va_Gia_Vien",
+    "subfolder": "01_Gia_Vien_Thanh_Tri",
+    "upk": "1844834775.upk",
+    "gltf_count": 61,
+    "patched_count": 47,
+    "tex_count": 83,
+    "desc": "Lâu đài kiến trúc gia viên, hải đăng, đài ngắm cảnh và sân vườn",
+    "path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\exported_maps\\01_Gia_Vien_Thanh_Tri",
+    "preview_img": "Ban_Do_Hoan_Chinh_3D/previews/15_01_Gia_Vien_Thanh_Tri.png",
+    "primary_mesh": "DM_Jiayuan_ShuMaTieXiang",
+    "all_meshes": [
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh"
+    ],
+    "sample_meshes": [
+      "DM_Jiayuan_ShuMaTieXiang",
+      "DM_Jiayuan_ShuMaYinXiang",
+      "DM_Jiayuan_ShuMaJinXiang",
+      "DM_Jiayuan_Shumadiqiuyi",
+      "DM_Jiayuan_shenlinpenquan",
+      "DM_Jiayuan_ShuMaTongXiang"
+    ],
+    "merged_map_id": "15_01_Gia_Vien_Thanh_Tri",
+    "placed_objects": 56,
+    "total_verts": 59691,
+    "total_tris": 48484,
+    "merged_glb_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\15_01_Gia_Vien_Thanh_Tri.glb",
+    "merged_gltf_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\15_01_Gia_Vien_Thanh_Tri.gltf",
+    "merged_js_rel": "Ban_Do_Hoan_Chinh_3D/js_data/15_01_Gia_Vien_Thanh_Tri.js",
+    "glb_size_kb": 5862.3
+  },
+  {
+    "name": "Nội Thất Phòng Ở Gia Viên",
+    "category": "Chien_Truong_Va_Gia_Vien",
+    "subfolder": "02_Noi_That_Gia_Vien",
+    "upk": "3129521971.upk",
+    "gltf_count": 35,
+    "patched_count": 35,
+    "tex_count": 43,
+    "desc": "Bàn ghế, kệ tivi, giường nệm, đồ trang trí nội thất của nhà huấn luyện",
+    "path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\exported_maps\\02_Noi_That_Gia_Vien",
+    "preview_img": "Ban_Do_Hoan_Chinh_3D/previews/16_02_Noi_That_Gia_Vien.png",
+    "primary_mesh": "DM_Jiayuan_Wanjuchengdafang",
+    "all_meshes": [
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh"
+    ],
+    "sample_meshes": [
+      "DM_Jiayuan_Wanjuchengdafang",
+      "DM_Jiayuan_Shumadiqiuyi",
+      "DM_Jiayuan_Mofashuwu",
+      "DM_Jiayuan_jixieta",
+      "DM_Jiayuan_Wanjuchengfengchefang",
+      "DM_Jiayuan_shenlinshuwu"
+    ],
+    "merged_map_id": "16_02_Noi_That_Gia_Vien",
+    "placed_objects": 29,
+    "total_verts": 60923,
+    "total_tris": 31189,
+    "merged_glb_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\16_02_Noi_That_Gia_Vien.glb",
+    "merged_gltf_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\16_02_Noi_That_Gia_Vien.gltf",
+    "merged_js_rel": "Ban_Do_Hoan_Chinh_3D/js_data/16_02_Noi_That_Gia_Vien.js",
+    "glb_size_kb": 5001.9
+  },
+  {
+    "name": "Đạo Trường Hệ Hỏa & Núi Lửa",
+    "category": "Chien_Truong_Va_Gia_Vien",
+    "subfolder": "03_Dao_Truong_He_Hoa",
+    "upk": "345099267.upk",
+    "gltf_count": 20,
+    "patched_count": 20,
+    "tex_count": 34,
+    "desc": "Đạo quán thi đấu hệ Hỏa với nham thạch sôi sục",
+    "path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\exported_maps\\03_Dao_Truong_He_Hoa",
+    "preview_img": "Ban_Do_Hoan_Chinh_3D/previews/17_03_Dao_Truong_He_Hoa.png",
+    "primary_mesh": "HT_JianXiaoHuoShan_DiBiao",
+    "all_meshes": [
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh"
+    ],
+    "sample_meshes": [
+      "HT_JianXiaoHuoShan_DiBiao",
+      "HT_JianXiaoHuoShan_YaChi",
+      "HT_JianXiaoHuoShan_Shu04",
+      "HT_JianXiaoHuoShan_Shan",
+      "HT_JianXiaoHuoShan_YanJiang",
+      "HT_JianXiaoHuoShan_Shu01"
+    ],
+    "merged_map_id": "17_03_Dao_Truong_He_Hoa",
+    "placed_objects": 74,
+    "total_verts": 21868,
+    "total_tris": 22599,
+    "merged_glb_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\17_03_Dao_Truong_He_Hoa.glb",
+    "merged_gltf_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\17_03_Dao_Truong_He_Hoa.gltf",
+    "merged_js_rel": "Ban_Do_Hoan_Chinh_3D/js_data/17_03_Dao_Truong_He_Hoa.js",
+    "glb_size_kb": 2343.8
+  },
+  {
+    "name": "Chiến Trường Rừng Phong Đỏ (FengYeLin)",
+    "category": "Chien_Truong_Va_Gia_Vien",
+    "subfolder": "04_Chien_Truong_Rung_Phong",
+    "upk": "588737032.upk",
+    "gltf_count": 50,
+    "patched_count": 44,
+    "tex_count": 78,
+    "desc": "Khu rừng phong rực rỡ sắc đỏ mùa thu nơi diễn ra các trận quyết đấu",
+    "path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\exported_maps\\04_Chien_Truong_Rung_Phong",
+    "preview_img": "Ban_Do_Hoan_Chinh_3D/previews/18_04_Chien_Truong_Rung_Phong.png",
+    "primary_mesh": "HT_MJ03_DiBiao",
+    "all_meshes": [
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh"
+    ],
+    "sample_meshes": [
+      "HT_MJ03_DiBiao",
+      "HT_MJ03_Shu01",
+      "HT_MJ03_Shu03",
+      "HT_MJ03_Shu04",
+      "HT_MJ03_Shu02",
+      "HT_MiJing_DiaoSu05"
+    ],
+    "merged_map_id": "18_04_Chien_Truong_Rung_Phong",
+    "placed_objects": 383,
+    "total_verts": 59847,
+    "total_tris": 78551,
+    "merged_glb_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\18_04_Chien_Truong_Rung_Phong.glb",
+    "merged_gltf_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\18_04_Chien_Truong_Rung_Phong.gltf",
+    "merged_js_rel": "Ban_Do_Hoan_Chinh_3D/js_data/18_04_Chien_Truong_Rung_Phong.js",
+    "glb_size_kb": 5769.6
+  },
+  {
+    "name": "Mê Cảnh Bí Ẩn (Secret Realm)",
+    "category": "Chien_Truong_Va_Gia_Vien",
+    "subfolder": "05_Me_Canh_Bi_An",
+    "upk": "850112639.upk",
+    "gltf_count": 25,
+    "patched_count": 22,
+    "tex_count": 49,
+    "desc": "Khu rừng ảo ảnh, hồ nước lung linh và cổng dịch chuyển không gian",
+    "path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\exported_maps\\05_Me_Canh_Bi_An",
+    "preview_img": "Ban_Do_Hoan_Chinh_3D/previews/19_05_Me_Canh_Bi_An.png",
+    "primary_mesh": "HT_MiJing02_CaoCong",
+    "all_meshes": [
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh"
+    ],
+    "sample_meshes": [
+      "HT_MiJing02_CaoCong",
+      "HT_MiJing02_Shu02",
+      "HT_MiJing02_Shu01",
+      "HT_MiJing02_DiBiao04",
+      "HT_MiJing02_DiBiao05",
+      "HT_MiJing02_DiBiao06"
+    ],
+    "merged_map_id": "19_05_Me_Canh_Bi_An",
+    "placed_objects": 116,
+    "total_verts": 69858,
+    "total_tris": 64883,
+    "merged_glb_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\19_05_Me_Canh_Bi_An.glb",
+    "merged_gltf_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\19_05_Me_Canh_Bi_An.gltf",
+    "merged_js_rel": "Ban_Do_Hoan_Chinh_3D/js_data/19_05_Me_Canh_Bi_An.js",
+    "glb_size_kb": 3711.0
+  },
+  {
+    "name": "Đấu Trường Quyết Đấu (Arena PvP)",
+    "category": "Chien_Truong_Va_Gia_Vien",
+    "subfolder": "06_Dau_Truong_PvP",
+    "upk": "4153940552.upk",
+    "gltf_count": 29,
+    "patched_count": 0,
+    "tex_count": 40,
+    "desc": "Võ đài chiến đấu chuyên nghiệp tiêu chuẩn giải đấu quốc tế",
+    "path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\exported_maps\\06_Dau_Truong_PvP",
+    "preview_img": "Ban_Do_Hoan_Chinh_3D/previews/20_06_Dau_Truong_PvP.png",
+    "primary_mesh": "11",
+    "all_meshes": [
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh"
+    ],
+    "sample_meshes": [
+      "11",
+      "04",
+      "06",
+      "12-1",
+      "03",
+      "10"
+    ],
+    "merged_map_id": "20_06_Dau_Truong_PvP",
+    "placed_objects": 28,
+    "total_verts": 186990,
+    "total_tris": 65326,
+    "merged_glb_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\20_06_Dau_Truong_PvP.glb",
+    "merged_gltf_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\20_06_Dau_Truong_PvP.gltf",
+    "merged_js_rel": "Ban_Do_Hoan_Chinh_3D/js_data/20_06_Dau_Truong_PvP.js",
+    "glb_size_kb": 6611.1
+  },
+  {
+    "name": "Lôi Minh Hẻm Núi (Thunder Valley)",
+    "category": "Chien_Truong_Va_Gia_Vien",
+    "subfolder": "07_Loi_Minh_Hem_Nui",
+    "upk": "630598395.upk",
+    "gltf_count": 29,
+    "patched_count": 28,
+    "tex_count": 48,
+    "desc": "Vùng thung lũng đá cuội sấm sét, nơi cư ngụ của các Pokemon huyền thoại hệ Lôi",
+    "path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\exported_maps\\07_Loi_Minh_Hem_Nui",
+    "preview_img": "Ban_Do_Hoan_Chinh_3D/previews/21_07_Loi_Minh_Hem_Nui.png",
+    "primary_mesh": "HT_LeiMingXiaGu_DiBiao",
+    "all_meshes": [
+      "SkeletalMesh",
+      "SkeletalMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh",
+      "StaticMesh"
+    ],
+    "sample_meshes": [
+      "HT_LeiMingXiaGu_DiBiao",
+      "HT_LeiMingXiaGu_TengMan02",
+      "HT_LeiMingXiaGu_02",
+      "HT_LeiMingXiaGu_HuaCao02",
+      "HT_LeiMingXiaGu_HuaCao01",
+      "HT_LeiMingXiaGu_CaoPi"
+    ],
+    "merged_map_id": "21_07_Loi_Minh_Hem_Nui",
+    "placed_objects": 169,
+    "total_verts": 21292,
+    "total_tris": 18873,
+    "merged_glb_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\21_07_Loi_Minh_Hem_Nui.glb",
+    "merged_gltf_path": "C:\\Users\\Admin\\Downloads\\Pokedaichien\\Ban_Do_Hoan_Chinh_3D\\21_07_Loi_Minh_Hem_Nui.gltf",
+    "merged_js_rel": "Ban_Do_Hoan_Chinh_3D/js_data/21_07_Loi_Minh_Hem_Nui.js",
+    "glb_size_kb": 2502.8
+  }
+];
+
+        // ============================================================================
+        // NATIVE HARDWARE-ACCELERATED WEBGL 3D GLB ENGINE (100% OFFLINE, ZERO CORS)
+        // ============================================================================
+        const canvas = document.getElementById('map3dCanvas');
+        const gl = canvas.getContext('webgl2', { alpha: false, antialias: true }) ||
+                   canvas.getContext('webgl', { alpha: false, antialias: true });
+        const isWebGL2 = (typeof WebGL2RenderingContext !== 'undefined' && gl instanceof WebGL2RenderingContext);
+        if (!isWebGL2 && gl) {
+            gl.getExtension('OES_element_index_uint');
+        }
+
+        const VS_SRC = `
+            attribute vec3 aPos;
+            attribute vec3 aNrm;
+            attribute vec2 aUV;
+            uniform mat4 uMVP;
+            varying vec3 vNrm;
+            varying vec2 vUV;
+            void main() {
+                vNrm = aNrm;
+                vUV = aUV;
+                gl_Position = uMVP * vec4(aPos, 1.0);
+            }
+        `;
+
+        const FS_SRC = `
+            precision mediump float;
+            varying vec3 vNrm;
+            varying vec2 vUV;
+            uniform sampler2D uTex;
+            uniform int uHasTex;
+            uniform int uAlphaMode;
+            uniform float uAlphaCutoff;
+            uniform vec4 uBaseColor;
+            void main() {
+                vec4 texCol = (uHasTex == 1) ? texture2D(uTex, vUV) : vec4(0.75, 0.78, 0.82, 1.0);
+                vec4 col = texCol * uBaseColor;
+                if (uAlphaMode == 1 && col.a < uAlphaCutoff) {
+                    discard;
+                }
+                vec3 N = normalize(vNrm);
+                vec3 L1 = normalize(vec3(0.45, 0.85, 0.35));
+                vec3 L2 = normalize(vec3(-0.4, 0.5, -0.6));
+                float d1 = max(dot(N, L1), 0.0);
+                float d2 = max(dot(N, L2), 0.0);
+                float light = 0.62 + 0.35 * d1 + 0.15 * d2;
+                gl_FragColor = vec4(col.rgb * light, col.a);
+            }
+        `;
+
+        function compileShader(type, src) {
+            const s = gl.createShader(type);
+            gl.shaderSource(s, src);
+            gl.compileShader(s);
+            return s;
+        }
+
+        const prog = gl.createProgram();
+        gl.attachShader(prog, compileShader(gl.VERTEX_SHADER, VS_SRC));
+        gl.attachShader(prog, compileShader(gl.FRAGMENT_SHADER, FS_SRC));
+        gl.linkProgram(prog);
+        gl.useProgram(prog);
+
+        const locPos = gl.getAttribLocation(prog, 'aPos');
+        const locNrm = gl.getAttribLocation(prog, 'aNrm');
+        const locUV  = gl.getAttribLocation(prog, 'aUV');
+        const locMVP = gl.getUniformLocation(prog, 'uMVP');
+        const locTex = gl.getUniformLocation(prog, 'uTex');
+        const locHasTex = gl.getUniformLocation(prog, 'uHasTex');
+        const locAlphaMode = gl.getUniformLocation(prog, 'uAlphaMode');
+        const locAlphaCutoff = gl.getUniformLocation(prog, 'uAlphaCutoff');
+        const locBaseColor = gl.getUniformLocation(prog, 'uBaseColor');
+
+        let drawCalls = [];
+        let sceneCenter = [0, 0, 0];
+        let sceneRadius = 40.0;
+
+        // Orbit Camera State
+        let camYaw = -0.32;    // Góc nhìn chuẩn giống ảnh mẫu
+        let camPitch = 0.56;   // ~32 độ nhìn từ trên xuống
+        let camDist = 55.0;
+        let camTarget = [0, 0, 0];
+        let autoRotate = false;
+        let wireframeMode = false;
+        let currentMapId = '';
+
+        function resetCamera() {
+            camYaw = -0.32;
+            camPitch = 0.52;
+            if (currentMapId.includes('Dan_Cu_Va_NPC')) {
+                camDist = sceneRadius * 0.52;
+            } else {
+                camDist = sceneRadius * 1.15;
+            }
+            camTarget = [sceneCenter[0], sceneCenter[1], sceneCenter[2]];
+        }
+
+        function zoomCamera(factor) {
+            camDist = Math.max(sceneRadius * 0.05, Math.min(sceneRadius * 4.5, camDist * factor));
+        }
+
+        function toggleAutoRotate() {
+            autoRotate = !autoRotate;
+            document.getElementById('btnAutoRot').classList.toggle('active', autoRotate);
+        }
+
+        function toggleWireframe() {
+            wireframeMode = !wireframeMode;
+            document.getElementById('btnWireframe').classList.toggle('active', wireframeMode);
+        }
+
+        function toggleFullscreen() {
+            const el = document.getElementById('viewerSection');
+            if (!document.fullscreenElement) {
+                el.requestFullscreen().catch(() => {});
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // Mouse & Touch Orbit Controls
+        let isDragging = false;
+        let dragBtn = 0;
+        let lastX = 0, lastY = 0;
+
+        canvas.addEventListener('mousedown', e => {
+            isDragging = true;
+            dragBtn = (e.button === 2 || e.shiftKey) ? 2 : 0;
+            lastX = e.clientX;
+            lastY = e.clientY;
+        });
+        window.addEventListener('mouseup', () => { isDragging = false; });
+        window.addEventListener('mousemove', e => {
+            if (!isDragging) return;
+            const dx = e.clientX - lastX;
+            const dy = e.clientY - lastY;
+            lastX = e.clientX;
+            lastY = e.clientY;
+
+            if (dragBtn === 0) {
+                camYaw -= dx * 0.007;
+                camPitch = Math.max(-1.45, Math.min(1.48, camPitch + dy * 0.007));
+            } else {
+                const panSpeed = camDist * 0.0018;
+                const cy = Math.cos(camYaw), sy = Math.sin(camYaw);
+                camTarget[0] -= (dx * cy) * panSpeed;
+                camTarget[2] -= (dx * sy) * panSpeed;
+                camTarget[1] += dy * panSpeed;
+            }
+        });
+        canvas.addEventListener('contextmenu', e => e.preventDefault());
+        canvas.addEventListener('wheel', e => {
+            e.preventDefault();
+            const factor = e.deltaY > 0 ? 1.12 : 0.89;
+            zoomCamera(factor);
+        }, { passive: false });
+
+        // Matrix Math Helpers
+        function mat4Perspective(fov, aspect, near, far) {
+            const f = 1.0 / Math.tan(fov / 2);
+            const nf = 1 / (near - far);
+            return new Float32Array([
+                f / aspect, 0, 0, 0,
+                0, f, 0, 0,
+                0, 0, (far + near) * nf, -1,
+                0, 0, (2 * far * near) * nf, 0
+            ]);
+        }
+
+        function mat4LookAt(eye, center, up) {
+            let zx = eye[0] - center[0], zy = eye[1] - center[1], zz = eye[2] - center[2];
+            let len = Math.hypot(zx, zy, zz) || 1;
+            zx /= len; zy /= len; zz /= len;
+            let xx = up[1] * zz - up[2] * zy;
+            let xy = up[2] * zx - up[0] * zz;
+            let xz = up[0] * zy - up[1] * zx;
+            len = Math.hypot(xx, xy, xz) || 1;
+            xx /= len; xy /= len; xz /= len;
+            let yx = zy * xz - zz * xy;
+            let yy = zz * xx - zx * xz;
+            let yz = zx * xy - zy * xx;
+            return new Float32Array([
+                xx, yx, zx, 0,
+                xy, yy, zy, 0,
+                xz, yz, zz, 0,
+                -(xx * eye[0] + xy * eye[1] + xz * eye[2]),
+                -(yx * eye[0] + yy * eye[1] + yz * eye[2]),
+                -(zx * eye[0] + zy * eye[1] + zz * eye[2]),
+                1
+            ]);
+        }
+
+        function mat4Mul(a, b) {
+            const out = new Float32Array(16);
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    out[j * 4 + i] =
+                        a[0 * 4 + i] * b[j * 4 + 0] +
+                        a[1 * 4 + i] * b[j * 4 + 1] +
+                        a[2 * 4 + i] * b[j * 4 + 2] +
+                        a[3 * 4 + i] * b[j * 4 + 3];
+                }
+            }
+            return out;
+        }
+
+        // Parse & Load GLB Buffer into WebGL
+        function parseAndUploadGLB(arrayBuffer) {
+            // Clear old buffers
+            drawCalls.forEach(dc => {
+                gl.deleteBuffer(dc.vboPos);
+                gl.deleteBuffer(dc.vboNrm);
+                gl.deleteBuffer(dc.vboUV);
+                gl.deleteBuffer(dc.ibo);
+            });
+            drawCalls = [];
+
+            const dv = new DataView(arrayBuffer);
+            const magic = dv.getUint32(0, true);
+            if (magic !== 0x46546C67) return;
+
+            const jsonLen = dv.getUint32(12, true);
+            const jsonBytes = new Uint8Array(arrayBuffer, 20, jsonLen);
+            const gltf = JSON.parse(new TextDecoder('utf-8').decode(jsonBytes));
+
+            const binChunkStart = 20 + jsonLen + 8;
+
+            // Create WebGL textures from embedded PNG bufferViews
+            const glTextures = [];
+            (gltf.images || []).forEach(imgDef => {
+                const bv = gltf.bufferViews[imgDef.bufferView];
+                const imgBytes = new Uint8Array(arrayBuffer, binChunkStart + (bv.byteOffset || 0), bv.byteLength);
+                const blob = new Blob([imgBytes], { type: imgDef.mimeType || 'image/png' });
+                const url = URL.createObjectURL(blob);
+
+                const tex = gl.createTexture();
+                gl.bindTexture(gl.TEXTURE_2D, tex);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([180, 195, 210, 255]));
+
+                const image = new Image();
+                image.onload = () => {
+                    gl.bindTexture(gl.TEXTURE_2D, tex);
+                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+                    if (isWebGL2 || ((image.width & (image.width - 1)) === 0 && (image.height & (image.height - 1)) === 0)) {
+                        gl.generateMipmap(gl.TEXTURE_2D);
+                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+                    } else {
+                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                    }
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+                    URL.revokeObjectURL(url);
+                };
+                image.src = url;
+                glTextures.push(tex);
+            });
+
+            let minX = Infinity, minY = Infinity, minZ = Infinity;
+            let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+
+            const mesh = gltf.meshes[0];
+            mesh.primitives.forEach(prim => {
+                const posAcc = gltf.accessors[prim.attributes.POSITION];
+                const nrmAcc = gltf.accessors[prim.attributes.NORMAL];
+                const uvAcc  = gltf.accessors[prim.attributes.TEXCOORD_0];
+                const indAcc = gltf.accessors[prim.indices];
+
+                if (posAcc.min && posAcc.max) {
+                    minX = Math.min(minX, posAcc.min[0]);
+                    minY = Math.min(minY, posAcc.min[1]);
+                    minZ = Math.min(minZ, posAcc.min[2]);
+                    maxX = Math.max(maxX, posAcc.max[0]);
+                    maxY = Math.max(maxY, posAcc.max[1]);
+                    maxZ = Math.max(maxZ, posAcc.max[2]);
+                }
+
+                const posBV = gltf.bufferViews[posAcc.bufferView];
+                const nrmBV = gltf.bufferViews[nrmAcc.bufferView];
+                const uvBV  = gltf.bufferViews[uvAcc.bufferView];
+                const indBV = gltf.bufferViews[indAcc.bufferView];
+
+                const vboPos = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, vboPos);
+                gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(arrayBuffer, binChunkStart + posBV.byteOffset, posBV.byteLength), gl.STATIC_DRAW);
+
+                const vboNrm = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, vboNrm);
+                gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(arrayBuffer, binChunkStart + nrmBV.byteOffset, nrmBV.byteLength), gl.STATIC_DRAW);
+
+                const vboUV = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, vboUV);
+                gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(arrayBuffer, binChunkStart + uvBV.byteOffset, uvBV.byteLength), gl.STATIC_DRAW);
+
+                const ibo = gl.createBuffer();
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
+                gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint8Array(arrayBuffer, binChunkStart + indBV.byteOffset, indBV.byteLength), gl.STATIC_DRAW);
+
+                const mat = (gltf.materials || [])[prim.material] || {};
+                const pbr = mat.pbrMetallicRoughness || {};
+                const baseColor = pbr.baseColorFactor || [1, 1, 1, 1];
+                let glTex = null;
+                if (pbr.baseColorTexture !== undefined) {
+                    const tDef = (gltf.textures || [])[pbr.baseColorTexture.index];
+                    if (tDef && glTextures[tDef.source]) {
+                        glTex = glTextures[tDef.source];
+                    }
+                }
+                let alphaMode = 0; // 0=OPAQUE, 1=MASK, 2=BLEND
+                if (mat.alphaMode === 'MASK') alphaMode = 1;
+                else if (mat.alphaMode === 'BLEND') alphaMode = 2;
+
+                drawCalls.push({
+                    vboPos, vboNrm, vboUV, ibo,
+                    count: indAcc.count,
+                    glTex,
+                    baseColor,
+                    alphaMode,
+                    alphaCutoff: mat.alphaCutoff !== undefined ? mat.alphaCutoff : 0.4
+                });
+            });
+
+            // Sort draw calls so BLEND materials render after OPAQUE/MASK
+            drawCalls.sort((a, b) => a.alphaMode - b.alphaMode);
+
+            if (isFinite(minX)) {
+                sceneCenter = [(minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2];
+                sceneRadius = Math.max(maxX - minX, maxZ - minZ, maxY - minY, 10.0) * 0.55;
+            } else {
+                sceneCenter = [0, 0, 0];
+                sceneRadius = 40.0;
+            }
+            resetCamera();
+        }
+
+        // Callback invoked by dynamically loaded <script src="Ban_Do_Hoan_Chinh_3D/js_data/...">
+        window.onMapGlbLoaded = function(mapId, b64Str) {
+            const binStr = atob(b64Str);
+            const len = binStr.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binStr.charCodeAt(i);
+            }
+            parseAndUploadGLB(bytes.buffer);
+            document.getElementById('loadingOverlay').classList.add('hidden');
+        };
+
+        let activeScriptTag = null;
+        function loadComplete3DMap(mapId) {
+            const item = mapsData.find(m => m.merged_map_id === mapId);
+            if (!item) return;
+            currentMapId = mapId;
+
+            document.getElementById('activeMapTitle').innerText = item.name + ' (Bản Đồ 3D Hoàn Chỉnh)';
+            document.getElementById('activeMapStats').innerText =
+                `File ghép: ${item.merged_map_id}.glb (${item.glb_size_kb} KB) | Đã ghép: ${item.placed_objects} công trình & địa hình | ${item.total_tris.toLocaleString()} tam giác 3D`;
+
+            document.getElementById('loadingText').innerText = `Đang nạp Bản Đồ 3D Hoàn Chỉnh: ${item.name}...`;
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+
+            // Highlight active pill and card
+            document.querySelectorAll('.pill-btn').forEach(p => {
+                p.classList.toggle('active', p.dataset.mapId === mapId);
+            });
+            document.querySelectorAll('.card').forEach(c => {
+                c.classList.toggle('playing', c.dataset.mapId === mapId);
+            });
+
+            if (activeScriptTag) {
+                activeScriptTag.remove();
+            }
+            const s = document.createElement('script');
+            s.src = item.merged_js_rel;
+            s.onerror = () => {
+                document.getElementById('loadingText').innerText = 'Không thể nạp file JS dữ liệu 3D.';
+            };
+            document.body.appendChild(s);
+            activeScriptTag = s;
+        }
+
+        // Render Loop
+        function renderLoop() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            const w = Math.floor(rect.width * dpr);
+            const h = Math.floor(rect.height * dpr);
+            if (canvas.width !== w || canvas.height !== h) {
+                canvas.width = w;
+                canvas.height = h;
+            }
+
+            gl.viewport(0, 0, canvas.width, canvas.height);
+            gl.clearColor(0.06, 0.11, 0.20, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            gl.enable(gl.DEPTH_TEST);
+
+            if (autoRotate && !isDragging) {
+                camYaw += 0.004;
+            }
+
+            const eye = [
+                camTarget[0] + camDist * Math.cos(camPitch) * Math.sin(camYaw),
+                camTarget[1] + camDist * Math.sin(camPitch),
+                camTarget[2] + camDist * Math.cos(camPitch) * Math.cos(camYaw)
+            ];
+
+            const proj = mat4Perspective(42 * Math.PI / 180, canvas.width / Math.max(1, canvas.height), sceneRadius * 0.01, sceneRadius * 12.0);
+            const view = mat4LookAt(eye, camTarget, [0, 1, 0]);
+            const mvp = mat4Mul(proj, view);
+
+            gl.useProgram(prog);
+            gl.uniformMatrix4fv(locMVP, false, mvp);
+
+            gl.enableVertexAttribArray(locPos);
+            gl.enableVertexAttribArray(locNrm);
+            gl.enableVertexAttribArray(locUV);
+
+            for (let i = 0; i < drawCalls.length; i++) {
+                const dc = drawCalls[i];
+
+                if (dc.alphaMode === 2) {
+                    gl.enable(gl.BLEND);
+                    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+                } else {
+                    gl.disable(gl.BLEND);
+                }
+
+                gl.bindBuffer(gl.ARRAY_BUFFER, dc.vboPos);
+                gl.vertexAttribPointer(locPos, 3, gl.FLOAT, false, 0, 0);
+
+                gl.bindBuffer(gl.ARRAY_BUFFER, dc.vboNrm);
+                gl.vertexAttribPointer(locNrm, 3, gl.FLOAT, false, 0, 0);
+
+                gl.bindBuffer(gl.ARRAY_BUFFER, dc.vboUV);
+                gl.vertexAttribPointer(locUV, 2, gl.FLOAT, false, 0, 0);
+
+                if (dc.glTex) {
+                    gl.activeTexture(gl.TEXTURE0);
+                    gl.bindTexture(gl.TEXTURE_2D, dc.glTex);
+                    gl.uniform1i(locTex, 0);
+                    gl.uniform1i(locHasTex, 1);
+                } else {
+                    gl.uniform1i(locHasTex, 0);
+                }
+
+                gl.uniform1i(locAlphaMode, dc.alphaMode);
+                gl.uniform1f(locAlphaCutoff, dc.alphaCutoff);
+                gl.uniform4fv(locBaseColor, dc.baseColor);
+
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, dc.ibo);
+                gl.drawElements(wireframeMode ? gl.LINES : gl.TRIANGLES, dc.count, gl.UNSIGNED_INT, 0);
+            }
+
+            requestAnimationFrame(renderLoop);
+        }
+
+        // UI Cards & Quick Selector
+        function getCategoryBadge(cat) {
+            if (cat === 'Chu_Thanh') return '<span class="badge badge-city">Chủ Thành</span>';
+            if (cat === 'Dai_Ban_Do_The_Gioi') return '<span class="badge badge-world">Thế Giới</span>';
+            return '<span class="badge badge-battle">Chiến Trường</span>';
+        }
+
+        function buildQuickBar() {
+            const qb = document.getElementById('quickBar');
+            qb.innerHTML = '';
+            mapsData.forEach((item, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'pill-btn';
+                btn.dataset.mapId = item.merged_map_id;
+                btn.innerText = `[${idx + 1}] ${item.name}`;
+                btn.onclick = () => loadComplete3DMap(item.merged_map_id);
+                qb.appendChild(btn);
+            });
+        }
+
+        function renderCards(list) {
+            const grid = document.getElementById('mapGrid');
+            grid.innerHTML = '';
+
+            list.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card' + (item.merged_map_id === currentMapId ? ' playing' : '');
+                card.dataset.mapId = item.merged_map_id;
+
+                const glbPathEsc = (item.merged_glb_path || '').replace(/\\/g, '\\\\');
+
+                card.innerHTML = `
+                    <div class="card-header">
+                        ${getCategoryBadge(item.category)}
+                        <span class="upk-tag">${item.upk}</span>
+                    </div>
+                    <div class="card-title">${item.name}</div>
+                    <div class="card-desc">${item.desc}</div>
+
+                    <div class="preview-box" onclick="viewMapAndScroll('${item.merged_map_id}')">
+                        <img src="${item.preview_img}" alt="${item.name}" loading="lazy">
+                        <div class="play-overlay">🌐 Nhấn để Xem Bản Đồ 3D Hoàn Chỉnh</div>
+                    </div>
+
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <div class="num" style="color:#10b981">${item.placed_objects || item.gltf_count}</div>
+                            <div class="lbl">Vật Thể Đã Ghép</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="num" style="color:#38bdf8">${(item.total_tris || 0).toLocaleString()}</div>
+                            <div class="lbl">Tam Giác 3D</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="num" style="color:#f59e0b">${item.glb_size_kb || 0} KB</div>
+                            <div class="lbl">1 File .GLB</div>
+                        </div>
+                    </div>
+
+                    <div class="merged-file-box">
+                        ✅ Đã ghép thành 1 file: Ban_Do_Hoan_Chinh_3D\${item.merged_map_id}.glb
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-3d" onclick="viewMapAndScroll('${item.merged_map_id}')">🌐 Xem Bản Đồ 3D Đã Ghép</button>
+                        <button class="btn btn-secondary" onclick="copyPath('${glbPathEsc}')">📋 Copy Đường Dẫn .GLB</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function viewMapAndScroll(mapId) {
+            loadComplete3DMap(mapId);
+            document.getElementById('viewerSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function copyPath(p) {
+            navigator.clipboard.writeText(p);
+            alert('Đã sao chép đường dẫn file Bản Đồ 3D Hoàn Chỉnh (.glb):\n' + p);
+        }
+
+        function filterCategory(cat, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            if (cat === 'all') renderCards(mapsData);
+            else renderCards(mapsData.filter(m => m.category === cat));
+        }
+
+        function handleSearch() {
+            const q = document.getElementById('searchInput').value.toLowerCase().trim();
+            renderCards(mapsData.filter(m =>
+                m.name.toLowerCase().includes(q) ||
+                m.desc.toLowerCase().includes(q) ||
+                m.upk.toLowerCase().includes(q) ||
+                (m.merged_map_id && m.merged_map_id.toLowerCase().includes(q))
+            ));
+        }
+
+        // Khởi chạy
+        buildQuickBar();
+        renderCards(mapsData);
+        requestAnimationFrame(renderLoop);
+        // Mặc định mở ngay Bản Đồ Chủ Thành / Làng Tân Thủ giống hệt hình mẫu của người dùng!
+        loadComplete3DMap('02_02_Ngoai_Vi_Vien_Nghien_Cuu');
+    </script>
+</body>
+</html>

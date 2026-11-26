@@ -1,0 +1,203 @@
+{
+  "asset": {
+    "generator": "Pokedaichien Complete 3D Map Merger",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "20_06_Dau_Truong_PvP",
+      "mesh": 0
+    }
+  ],
+  "meshes": [
+    {
+      "name": "20_06_Dau_Truong_PvP",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        },
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 1
+        }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "name": "dummy_material_0",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "metallicFactor": 0.0,
+        "roughnessFactor": 0.85
+      },
+      "doubleSided": true
+    },
+    {
+      "name": "dummy_material_1",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "metallicFactor": 0.0,
+        "roughnessFactor": 0.85
+      },
+      "doubleSided": true
+    }
+  ],
+  "textures": [],
+  "images": [],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 179738,
+      "type": "VEC3",
+      "min": [
+        -6.666574478149414,
+        -1.7064571380615234,
+        -9.19449234008789
+      ],
+      "max": [
+        7.142026424407959,
+        10.044160842895508,
+        6.7272233963012695
+      ]
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 179738,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 179738,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5125,
+      "count": 188700,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 7252,
+      "type": "VEC3",
+      "min": [
+        -2.1150665283203125,
+        -0.006758463103324175,
+        -2.2144150733947754
+      ],
+      "max": [
+        1.930366039276123,
+        3.9303243160247803,
+        1.3204679489135742
+      ]
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 7252,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 7252,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5125,
+      "count": 7278,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteOffset": 0,
+      "byteLength": 2156856,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 2156856,
+      "byteLength": 2156856,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 4313712,
+      "byteLength": 1437904,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 5751616,
+      "byteLength": 754800,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 6506416,
+      "byteLength": 87024,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 6593440,
+      "byteLength": 87024,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 6680464,
+      "byteLength": 58016,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 6738480,
+      "byteLength": 29112,
+      "target": 34963
+    }
+  ],
+  "buffers": [
+    {
+      "uri": "20_06_Dau_Truong_PvP.bin",
+      "byteLength": 6767592
+    }
+  ]
+}

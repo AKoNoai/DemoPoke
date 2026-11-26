@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Pokedaichien - Menu Chức Năng & Biểu Tượng Tính Năng UI</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+            color: #c9d1d9;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            padding: 30px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(22, 27, 34, 0.8);
+            border-radius: 16px;
+            border: 1px solid #30363d;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        .header h1 {
+            color: #58a6ff;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        .header p { color: #8b949e; font-size: 15px; }
+        .badge {
+            display: inline-block;
+            background: #238636;
+            color: #fff;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .section-title {
+            font-size: 18px;
+            color: #f0883e;
+            margin: 28px 0 14px;
+            padding-left: 12px;
+            border-left: 4px solid #f0883e;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 14px;
+            margin-bottom: 30px;
+        }
+        .grid-featured {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 1200px) {
+            .grid-featured { grid-template-columns: repeat(4, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .grid-featured { grid-template-columns: repeat(2, 1fr); }
+        }
+        .card {
+            background: #1c2128;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 14px 10px;
+            text-align: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .card:hover {
+            transform: translateY(-4px) scale(1.03);
+            border-color: #58a6ff;
+            box-shadow: 0 8px 20px rgba(88, 166, 255, 0.25);
+            background: #22272e;
+        }
+        .icon-box {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            background: radial-gradient(circle, rgba(56,139,253,0.18) 0%, rgba(0,0,0,0) 70%);
+            border-radius: 50%;
+        }
+        .icon-box img {
+            max-width: 75px;
+            max-height: 75px;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.6));
+            transition: transform 0.2s ease;
+        }
+        .card:hover .icon-box img {
+            transform: scale(1.15);
+        }
+        .en-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: #f0f6fc;
+            margin-bottom: 4px;
+        }
+        .vi-name {
+            font-size: 12px;
+            color: #7ee787;
+            margin-bottom: 6px;
+        }
+        .filename {
+            font-size: 10px;
+            color: #8b949e;
+            font-family: monospace;
+            background: #0d1117;
+            padding: 2px 6px;
+            border-radius: 6px;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .mini .icon-box { width: 60px; height: 60px; }
+        .mini .icon-box img { max-width: 55px; max-height: 55px; }
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: #8b949e;
+            border-top: 1px solid #30363d;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎮 POKÉDAI CHIẾN - GIAO DIỆN & BIỂU TƯỢNG TÍNH NĂNG UI</h1>
+        <p>Đã giải mã thành công từ Texture Atlas gốc: <code>2723450440.upk</code> + <code>UI_HT_zhujiemian_android.tfc</code> (2048x2048 RGBA)</p>
+        <span class="badge">ĐÃ TRÍCH XUẤT ĐẦY ĐỦ 205 BIỂU TƯỢNG CHUẨN PNG TRONG SUỐT</span>
+    </div>
+
+    <div class="section-title">⭐ HÀNG 1: BIỂU TƯỢNG MENU TRÊN CÙNG (TOP BAR MENU)</div>
+    <div class="grid-featured">
+        
+        <div class="card">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_paihang.png" alt="Ranking"></div>
+            <div class="en-name">Ranking</div>
+            <div class="vi-name">Bảng Xếp Hạng</div>
+            <div class="filename">icon_paihang.png</div>
+        </div>
+        <div class="card">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_chongzhi.png" alt="Recharge"></div>
+            <div class="en-name">Recharge</div>
+            <div class="vi-name">Nạp Thẻ</div>
+            <div class="filename">icon_chongzhi.png</div>
+        </div>
+        <div class="card">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_huodong.png" alt="Event"></div>
+            <div class="en-name">Event</div>
+            <div class="vi-name">Sự Kiện</div>
+            <div class="filename">icon_huodong.png</div>
+        </div>
+        <div class="card">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/Action_BaoLuan.png" alt="Activity"></div>
+            <div class="en-name">Activity</div>
+            <div class="vi-name">Hoạt Động / Bạo Loạn</div>
+            <div class="filename">Action_BaoLuan.png</div>
+        </div>
+        <div class="card">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_qiandao.png" alt="Check-in"></div>
+            <div class="en-name">Check-in</div>
+            <div class="vi-name">Điểm Danh Hàng Ngày</div>
+            <div class="filename">icon_qiandao.png</div>
+        </div>
+        <div class="card">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_vipfuli.png" alt="M-Card"></div>
+            <div class="en-name">M-Card</div>
+            <div class="vi-name">Thẻ Tháng / Phúc Lợi</div>
+            <div class="filename">icon_vipfuli.png</div>
+        </div>
+        <div class="card">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/VIP.png" alt="VIP Bonus"></div>
+            <div class="en-name">VIP Bonus</div>
+            <div class="vi-name">Đặc Quyền VIP</div>
+            <div class="filename">VIP.png</div>
+        </div>
+        <div class="card">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_dalibao.png" alt="Gift"></div>
+            <div class="en-name">Gift</div>
+            <div class="vi-name">Quà Tặng / Đại Lễ Bao</div>
+            <div class="filename">icon_dalibao.png</div>
+        </div>
+    </div>
+
+    <div class="section-title">⭐ HÀNG 2: BIỂU TƯỢNG HOẠT ĐỘNG & NẠP (ACTIVITY & RECHARGE)</div>
+    <div class="grid-featured">
+        
+        <div class="card">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_shouchong1.png" alt="1st Recharge"></div>
+            <div class="en-name">1st Recharge</div>
+            <div class="vi-name">Nạp Đầu (Lucario)</div>
+            <div class="filename">icon_shouchong1.png</div>
+        </div>
+        <div class="card">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_qitiansong.png" alt="Attendance"></div>
+            <div class="en-name">Attendance</div>
+            <div class="vi-name">Điểm Danh 7 Ngày (Marill)</div>
+            <div class="filename">icon_qitiansong.png</div>
+        </div>
+        <div class="card">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_zhuanzhuanle.png" alt="Turntable"></div>
+            <div class="en-name">Turntable</div>
+            <div class="vi-name">Vòng Quay May Mắn</div>
+            <div class="filename">icon_zhuanzhuanle.png</div>
+        </div>
+        <div class="card">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_songshenchong.png" alt="Epics"></div>
+            <div class="en-name">Epics</div>
+            <div class="vi-name">Tặng Thần Thú (Greninja)</div>
+            <div class="filename">icon_songshenchong.png</div>
+        </div>
+        <div class="card">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_shanguangduihuan.png" alt="Trades"></div>
+            <div class="en-name">Trades</div>
+            <div class="vi-name">Giao Dịch Đổi Quà</div>
+            <div class="filename">icon_shanguangduihuan.png</div>
+        </div>
+        <div class="card">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_zhaocaimao.png" alt="Lucky Draw"></div>
+            <div class="en-name">Lucky Draw</div>
+            <div class="vi-name">Rút Thưởng May Mắn</div>
+            <div class="filename">icon_zhaocaimao.png</div>
+        </div>
+        <div class="card">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_chengzhangjijin.png" alt="Total"></div>
+            <div class="en-name">Total</div>
+            <div class="vi-name">Tích Lũy Nạp</div>
+            <div class="filename">icon_chengzhangjijin.png</div>
+        </div>
+        <div class="card">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_shijiedasai.png" alt="Top Spend"></div>
+            <div class="en-name">Top Spend</div>
+            <div class="vi-name">Tiêu Phí BXH</div>
+            <div class="filename">icon_shijiedasai.png</div>
+        </div>
+    </div>
+
+    <div class="section-title">⭐ HÀNG 3: BIỂU TƯỢNG TÍNH NĂNG & THÁM HIỂM (GAMEPLAY & SYSTEM)</div>
+    <div class="grid-featured">
+        
+        <div class="card">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_tujian.png" alt="Nature"></div>
+            <div class="en-name">Nature</div>
+            <div class="vi-name">Tính Cách / Đồ Giám</div>
+            <div class="filename">icon_tujian.png</div>
+        </div>
+        <div class="card">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_yaoyaole.png" alt="Lottery"></div>
+            <div class="en-name">Lottery</div>
+            <div class="vi-name">Xổ Số / Lắc Lắc Thưởng</div>
+            <div class="filename">icon_yaoyaole.png</div>
+        </div>
+        <div class="card">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_mijing.png" alt="Islands"></div>
+            <div class="en-name">Islands</div>
+            <div class="vi-name">Đảo Thám Hiểm / Bí Cảnh</div>
+            <div class="filename">icon_mijing.png</div>
+        </div>
+        <div class="card">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_duiduile.png" alt="Bingo"></div>
+            <div class="en-name">Bingo</div>
+            <div class="vi-name">Ghép Hình Bingo</div>
+            <div class="filename">icon_duiduile.png</div>
+        </div>
+        <div class="card">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_guanjunlianmeng.png" alt="Pass"></div>
+            <div class="en-name">Pass</div>
+            <div class="vi-name">Battle Pass / Chiến Lệnh</div>
+            <div class="filename">icon_guanjunlianmeng.png</div>
+        </div>
+        <div class="card">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_shop.png" alt="Market"></div>
+            <div class="en-name">Market</div>
+            <div class="vi-name">Chợ / Cửa Hàng</div>
+            <div class="filename">icon_shop.png</div>
+        </div>
+        <div class="card">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_paimaihang.png" alt="Auction"></div>
+            <div class="en-name">Auction</div>
+            <div class="vi-name">Đấu Giá / Nhà Đấu Giá</div>
+            <div class="filename">icon_paimaihang.png</div>
+        </div>
+    </div>
+
+    <div class="section-title">📦 TOÀN BỘ CÁC BIỂU TƯỢNG & NÚT BẤM KHÁC (182 Icons)</div>
+    <div class="grid">
+        
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/Action_Boss.png" alt="Action Boss"></div>
+            <div class="en-name">Action Boss</div>
+            <div class="filename">Action_Boss.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/Action_Gonghuizhan.png" alt="Action Gonghuizhan"></div>
+            <div class="en-name">Action Gonghuizhan</div>
+            <div class="filename">Action_Gonghuizhan.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/Action_ShouLie.png" alt="Action Shoulie"></div>
+            <div class="en-name">Action Shoulie</div>
+            <div class="filename">Action_ShouLie.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/Action_guanjunliansai.png" alt="Action Guanjunliansai"></div>
+            <div class="en-name">Action Guanjunliansai</div>
+            <div class="filename">Action_guanjunliansai.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/Z_yinji.png" alt="Z Yinji"></div>
+            <div class="en-name">Z Yinji</div>
+            <div class="filename">Z_yinji.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/Z_yunshisuipian.png" alt="Z Yunshisuipian"></div>
+            <div class="en-name">Z Yunshisuipian</div>
+            <div class="filename">Z_yunshisuipian.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/bg_01.png" alt="Bg 01"></div>
+            <div class="en-name">Bg 01</div>
+            <div class="filename">bg_01.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/bg_03.png" alt="Bg 03"></div>
+            <div class="en-name">Bg 03</div>
+            <div class="filename">bg_03.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/bg_04.png" alt="Bg 04"></div>
+            <div class="en-name">Bg 04</div>
+            <div class="filename">bg_04.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/bg_05.png" alt="Bg 05"></div>
+            <div class="en-name">Bg 05</div>
+            <div class="filename">bg_05.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/bg_shijiedasai.png" alt="Bg Shijiedasai"></div>
+            <div class="en-name">Bg Shijiedasai</div>
+            <div class="filename">bg_shijiedasai.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/button03_blue01.png" alt="Button03 Blue01"></div>
+            <div class="en-name">Button03 Blue01</div>
+            <div class="filename">button03_blue01.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/button_blue01.png" alt="Button Blue01"></div>
+            <div class="en-name">Button Blue01</div>
+            <div class="filename">button_blue01.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/button_blue02.png" alt="Button Blue02"></div>
+            <div class="en-name">Button Blue02</div>
+            <div class="filename">button_blue02.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/button_chakan_1.png" alt="Button Chakan 1"></div>
+            <div class="en-name">Button Chakan 1</div>
+            <div class="filename">button_chakan_1.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/button_chakan_2.png" alt="Button Chakan 2"></div>
+            <div class="en-name">Button Chakan 2</div>
+            <div class="filename">button_chakan_2.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/button_left.png" alt="Button Left"></div>
+            <div class="en-name">Button Left</div>
+            <div class="filename">button_left.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/button_right.png" alt="Button Right"></div>
+            <div class="en-name">Button Right</div>
+            <div class="filename">button_right.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/button_righttouch.png" alt="Button Righttouch"></div>
+            <div class="en-name">Button Righttouch</div>
+            <div class="filename">button_righttouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/button_top.png" alt="Button Top"></div>
+            <div class="en-name">Button Top</div>
+            <div class="filename">button_top.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/button_top_left.png" alt="Button Top Left"></div>
+            <div class="en-name">Button Top Left</div>
+            <div class="filename">button_top_left.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/button_top_lefttouch.png" alt="Button Top Lefttouch"></div>
+            <div class="en-name">Button Top Lefttouch</div>
+            <div class="filename">button_top_lefttouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/button_zan_1.png" alt="Button Zan 1"></div>
+            <div class="en-name">Button Zan 1</div>
+            <div class="filename">button_zan_1.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/button_zan_2.png" alt="Button Zan 2"></div>
+            <div class="en-name">Button Zan 2</div>
+            <div class="filename">button_zan_2.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/changtiaodi.png" alt="Changtiaodi"></div>
+            <div class="en-name">Changtiaodi</div>
+            <div class="filename">changtiaodi.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/cube_1.png" alt="Cube 1"></div>
+            <div class="en-name">Cube 1</div>
+            <div class="filename">cube_1.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/cube_2.png" alt="Cube 2"></div>
+            <div class="en-name">Cube 2</div>
+            <div class="filename">cube_2.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/detail_huan.png" alt="Detail Huan"></div>
+            <div class="en-name">Detail Huan</div>
+            <div class="filename">detail_huan.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/detail_jingying.png" alt="Detail Jingying"></div>
+            <div class="en-name">Detail Jingying</div>
+            <div class="filename">detail_jingying.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/detail_jinhua.png" alt="Detail Jinhua"></div>
+            <div class="en-name">Detail Jinhua</div>
+            <div class="filename">detail_jinhua.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/detail_richang.png" alt="Detail Richang"></div>
+            <div class="en-name">Detail Richang</div>
+            <div class="filename">detail_richang.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/detail_zhi.png" alt="Detail Zhi"></div>
+            <div class="en-name">Detail Zhi</div>
+            <div class="filename">detail_zhi.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/detail_zhuxian.png" alt="Detail Zhuxian"></div>
+            <div class="en-name">Detail Zhuxian</div>
+            <div class="filename">detail_zhuxian.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/font_lv.png" alt="Font Lv"></div>
+            <div class="en-name">Font Lv</div>
+            <div class="filename">font_lv.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/font_maoxian.png" alt="Font Maoxian"></div>
+            <div class="en-name">Font Maoxian</div>
+            <div class="filename">font_maoxian.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/font_maoxiantouch.png" alt="Font Maoxiantouch"></div>
+            <div class="en-name">Font Maoxiantouch</div>
+            <div class="filename">font_maoxiantouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/font_viptequan.png" alt="Font Viptequan"></div>
+            <div class="en-name">Font Viptequan</div>
+            <div class="filename">font_viptequan.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_Boss.png" alt="Boss"></div>
+            <div class="en-name">Boss</div>
+            <div class="filename">icon_Boss.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_NengLiangJieJing.png" alt="Nengliangjiejing"></div>
+            <div class="en-name">Nengliangjiejing</div>
+            <div class="filename">icon_NengLiangJieJing.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_TupoKa.png" alt="Tupoka"></div>
+            <div class="en-name">Tupoka</div>
+            <div class="filename">icon_TupoKa.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_bag.png" alt="Bag"></div>
+            <div class="en-name">Bag</div>
+            <div class="filename">icon_bag.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_bagtouch.png" alt="Bagtouch"></div>
+            <div class="en-name">Bagtouch</div>
+            <div class="filename">icon_bagtouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_bianqiang.png" alt="Bianqiang"></div>
+            <div class="en-name">Bianqiang</div>
+            <div class="filename">icon_bianqiang.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_bianqiangtouch.png" alt="Bianqiangtouch"></div>
+            <div class="en-name">Bianqiangtouch</div>
+            <div class="filename">icon_bianqiangtouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_caidan.png" alt="Caidan"></div>
+            <div class="en-name">Caidan</div>
+            <div class="filename">icon_caidan.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_caidanlight.png" alt="Caidanlight"></div>
+            <div class="en-name">Caidanlight</div>
+            <div class="filename">icon_caidanlight.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_chenghao.png" alt="Chenghao"></div>
+            <div class="en-name">Chenghao</div>
+            <div class="filename">icon_chenghao.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_chengjiu.png" alt="Chengjiu"></div>
+            <div class="en-name">Chengjiu</div>
+            <div class="filename">icon_chengjiu.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_chengjiu_daoguantiaozhan.png" alt="Chengjiu Daoguantiaozhan"></div>
+            <div class="en-name">Chengjiu Daoguantiaozhan</div>
+            <div class="filename">icon_chengjiu_daoguantiaozhan.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_chengjiu_fuli.png" alt="Chengjiu Fuli"></div>
+            <div class="en-name">Chengjiu Fuli</div>
+            <div class="filename">icon_chengjiu_fuli.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_chengjiu_qiandao.png" alt="Chengjiu Qiandao"></div>
+            <div class="en-name">Chengjiu Qiandao</div>
+            <div class="filename">icon_chengjiu_qiandao.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_chengjiu_tanxiandui.png" alt="Chengjiu Tanxiandui"></div>
+            <div class="en-name">Chengjiu Tanxiandui</div>
+            <div class="filename">icon_chengjiu_tanxiandui.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_chengjiulight.png" alt="Chengjiulight"></div>
+            <div class="en-name">Chengjiulight</div>
+            <div class="filename">icon_chengjiulight.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_chengzhangjijin_1.png" alt="Chengzhangjijin 1"></div>
+            <div class="en-name">Chengzhangjijin 1</div>
+            <div class="filename">icon_chengzhangjijin_1.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_chongwu.png" alt="Chongwu"></div>
+            <div class="en-name">Chongwu</div>
+            <div class="filename">icon_chongwu.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_chongwujinhua.png" alt="Chongwujinhua"></div>
+            <div class="en-name">Chongwujinhua</div>
+            <div class="filename">icon_chongwujinhua.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_chongwuronghe.png" alt="Chongwuronghe"></div>
+            <div class="en-name">Chongwuronghe</div>
+            <div class="filename">icon_chongwuronghe.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_chongwutouch.png" alt="Chongwutouch"></div>
+            <div class="en-name">Chongwutouch</div>
+            <div class="filename">icon_chongwutouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_chongzhitouch.png" alt="Chongzhitouch"></div>
+            <div class="en-name">Chongzhitouch</div>
+            <div class="filename">icon_chongzhitouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_chuancheng.png" alt="Chuancheng"></div>
+            <div class="en-name">Chuancheng</div>
+            <div class="filename">icon_chuancheng.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_chuanchengtouch.png" alt="Chuanchengtouch"></div>
+            <div class="en-name">Chuanchengtouch</div>
+            <div class="filename">icon_chuanchengtouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_dalibaotouch.png" alt="Dalibaotouch"></div>
+            <div class="en-name">Dalibaotouch</div>
+            <div class="filename">icon_dalibaotouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_daoguanjifen.png" alt="Daoguanjifen"></div>
+            <div class="en-name">Daoguanjifen</div>
+            <div class="filename">icon_daoguanjifen.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_daoguanjineng.png" alt="Daoguanjineng"></div>
+            <div class="en-name">Daoguanjineng</div>
+            <div class="filename">icon_daoguanjineng.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_daoguanjinengtouch.png" alt="Daoguanjinengtouch"></div>
+            <div class="en-name">Daoguanjinengtouch</div>
+            <div class="filename">icon_daoguanjinengtouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_duiduiletouch.png" alt="Duiduiletouch"></div>
+            <div class="en-name">Duiduiletouch</div>
+            <div class="filename">icon_duiduiletouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_duiwu.png" alt="Duiwu"></div>
+            <div class="en-name">Duiwu</div>
+            <div class="filename">icon_duiwu.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_duiwutouch.png" alt="Duiwutouch"></div>
+            <div class="en-name">Duiwutouch</div>
+            <div class="filename">icon_duiwutouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_duizhan.png" alt="Duizhan"></div>
+            <div class="en-name">Duizhan</div>
+            <div class="filename">icon_duizhan.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_duizhanlight.png" alt="Duizhanlight"></div>
+            <div class="en-name">Duizhanlight</div>
+            <div class="filename">icon_duizhanlight.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_duizhantabi.png" alt="Duizhantabi"></div>
+            <div class="en-name">Duizhantabi</div>
+            <div class="filename">icon_duizhantabi.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_duizhantajifen.png" alt="Duizhantajifen"></div>
+            <div class="en-name">Duizhantajifen</div>
+            <div class="filename">icon_duizhantajifen.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_exp.png" alt="Exp"></div>
+            <div class="en-name">Exp</div>
+            <div class="filename">icon_exp.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_fanfanle.png" alt="Fanfanle"></div>
+            <div class="en-name">Fanfanle</div>
+            <div class="filename">icon_fanfanle.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_fanfanletouch.png" alt="Fanfanletouch"></div>
+            <div class="en-name">Fanfanletouch</div>
+            <div class="filename">icon_fanfanletouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_fuli.png" alt="Fuli"></div>
+            <div class="en-name">Fuli</div>
+            <div class="filename">icon_fuli.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_fulitouch.png" alt="Fulitouch"></div>
+            <div class="en-name">Fulitouch</div>
+            <div class="filename">icon_fulitouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_gaojimijingmenpiao.png" alt="Gaojimijingmenpiao"></div>
+            <div class="en-name">Gaojimijingmenpiao</div>
+            <div class="filename">icon_gaojimijingmenpiao.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_gerengongxianzhi.png" alt="Gerengongxianzhi"></div>
+            <div class="en-name">Gerengongxianzhi</div>
+            <div class="filename">icon_gerengongxianzhi.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_gonghuigongxianzhi.png" alt="Gonghuigongxianzhi"></div>
+            <div class="en-name">Gonghuigongxianzhi</div>
+            <div class="filename">icon_gonghuigongxianzhi.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_gonghuizhan.png" alt="Gonghuizhan"></div>
+            <div class="en-name">Gonghuizhan</div>
+            <div class="filename">icon_gonghuizhan.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_guanjunlianmengtouch.png" alt="Guanjunlianmengtouch"></div>
+            <div class="en-name">Guanjunlianmengtouch</div>
+            <div class="filename">icon_guanjunlianmengtouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_haoyou.png" alt="Haoyou"></div>
+            <div class="en-name">Haoyou</div>
+            <div class="filename">icon_haoyou.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_haoyoulight.png" alt="Haoyoulight"></div>
+            <div class="en-name">Haoyoulight</div>
+            <div class="filename">icon_haoyoulight.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_huizhang.png" alt="Huizhang"></div>
+            <div class="en-name">Huizhang</div>
+            <div class="filename">icon_huizhang.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_huizhanglight.png" alt="Huizhanglight"></div>
+            <div class="en-name">Huizhanglight</div>
+            <div class="filename">icon_huizhanglight.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_huizhangtouch.png" alt="Huizhangtouch"></div>
+            <div class="en-name">Huizhangtouch</div>
+            <div class="filename">icon_huizhangtouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_huobigonghui.png" alt="Huobigonghui"></div>
+            <div class="en-name">Huobigonghui</div>
+            <div class="filename">icon_huobigonghui.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_huobisaodang.png" alt="Huobisaodang"></div>
+            <div class="en-name">Huobisaodang</div>
+            <div class="filename">icon_huobisaodang.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_huobishijieboss.png" alt="Huobishijieboss"></div>
+            <div class="en-name">Huobishijieboss</div>
+            <div class="filename">icon_huobishijieboss.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_huobixilian.png" alt="Huobixilian"></div>
+            <div class="en-name">Huobixilian</div>
+            <div class="filename">icon_huobixilian.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_huode.png" alt="Huode"></div>
+            <div class="en-name">Huode</div>
+            <div class="filename">icon_huode.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_huodetouch.png" alt="Huodetouch"></div>
+            <div class="en-name">Huodetouch</div>
+            <div class="filename">icon_huodetouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_huodongtouch.png" alt="Huodongtouch"></div>
+            <div class="en-name">Huodongtouch</div>
+            <div class="filename">icon_huodongtouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_jibanzhi.png" alt="Jibanzhi"></div>
+            <div class="en-name">Jibanzhi</div>
+            <div class="filename">icon_jibanzhi.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_jinbi.png" alt="Jinbi"></div>
+            <div class="en-name">Jinbi</div>
+            <div class="filename">icon_jinbi.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_jinengshengji.png" alt="Jinengshengji"></div>
+            <div class="en-name">Jinengshengji</div>
+            <div class="filename">icon_jinengshengji.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_jingling.png" alt="Jingling"></div>
+            <div class="en-name">Jingling</div>
+            <div class="filename">icon_jingling.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_jixianduizhan.png" alt="Jixianduizhan"></div>
+            <div class="en-name">Jixianduizhan</div>
+            <div class="filename">icon_jixianduizhan.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_kefu.png" alt="Kefu"></div>
+            <div class="en-name">Kefu</div>
+            <div class="filename">icon_kefu.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_kuafujixian.png" alt="Kuafujixian"></div>
+            <div class="en-name">Kuafujixian</div>
+            <div class="filename">icon_kuafujixian.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_kuafujixiantouch.png" alt="Kuafujixiantouch"></div>
+            <div class="en-name">Kuafujixiantouch</div>
+            <div class="filename">icon_kuafujixiantouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_liansai.png" alt="Liansai"></div>
+            <div class="en-name">Liansai</div>
+            <div class="filename">icon_liansai.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_liansailight.png" alt="Liansailight"></div>
+            <div class="en-name">Liansailight</div>
+            <div class="filename">icon_liansailight.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_mijinglight.png" alt="Mijinglight"></div>
+            <div class="en-name">Mijinglight</div>
+            <div class="filename">icon_mijinglight.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_mijingmenpiao.png" alt="Mijingmenpiao"></div>
+            <div class="en-name">Mijingmenpiao</div>
+            <div class="filename">icon_mijingmenpiao.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_paihangtouch.png" alt="Paihangtouch"></div>
+            <div class="en-name">Paihangtouch</div>
+            <div class="filename">icon_paihangtouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_paimaihang1.png" alt="Paimaihang1"></div>
+            <div class="en-name">Paimaihang1</div>
+            <div class="filename">icon_paimaihang1.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_paimaihangtouch.png" alt="Paimaihangtouch"></div>
+            <div class="en-name">Paimaihangtouch</div>
+            <div class="filename">icon_paimaihangtouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_qiandaotouch.png" alt="Qiandaotouch"></div>
+            <div class="en-name">Qiandaotouch</div>
+            <div class="filename">icon_qiandaotouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_qianghuashi.png" alt="Qianghuashi"></div>
+            <div class="en-name">Qianghuashi</div>
+            <div class="filename">icon_qianghuashi.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_qinmidu.png" alt="Qinmidu"></div>
+            <div class="en-name">Qinmidu</div>
+            <div class="filename">icon_qinmidu.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_qitiansong1.png" alt="Qitiansong1"></div>
+            <div class="en-name">Qitiansong1</div>
+            <div class="filename">icon_qitiansong1.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_qitiansong1_1.png" alt="Qitiansong1 1"></div>
+            <div class="en-name">Qitiansong1 1</div>
+            <div class="filename">icon_qitiansong1_1.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_qitiansong_1.png" alt="Qitiansong 1"></div>
+            <div class="en-name">Qitiansong 1</div>
+            <div class="filename">icon_qitiansong_1.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_redpoint.png" alt="Redpoint"></div>
+            <div class="en-name">Redpoint</div>
+            <div class="filename">icon_redpoint.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_renwu.png" alt="Renwu"></div>
+            <div class="en-name">Renwu</div>
+            <div class="filename">icon_renwu.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_renwulight.png" alt="Renwulight"></div>
+            <div class="en-name">Renwulight</div>
+            <div class="filename">icon_renwulight.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_shanguang_chat.png" alt="Shanguang Chat"></div>
+            <div class="en-name">Shanguang Chat</div>
+            <div class="filename">icon_shanguang_chat.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_shanguangduihuantouch.png" alt="Shanguangduihuantouch"></div>
+            <div class="en-name">Shanguangduihuantouch</div>
+            <div class="filename">icon_shanguangduihuantouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_shetuan.png" alt="Shetuan"></div>
+            <div class="en-name">Shetuan</div>
+            <div class="filename">icon_shetuan.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_shetuanlight.png" alt="Shetuanlight"></div>
+            <div class="en-name">Shetuanlight</div>
+            <div class="filename">icon_shetuanlight.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_shijian.png" alt="Shijian"></div>
+            <div class="en-name">Shijian</div>
+            <div class="filename">icon_shijian.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_shijiantouch.png" alt="Shijiantouch"></div>
+            <div class="en-name">Shijiantouch</div>
+            <div class="filename">icon_shijiantouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_shijieboss.png" alt="Shijieboss"></div>
+            <div class="en-name">Shijieboss</div>
+            <div class="filename">icon_shijieboss.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_shijiedasaitouch.png" alt="Shijiedasaitouch"></div>
+            <div class="en-name">Shijiedasaitouch</div>
+            <div class="filename">icon_shijiedasaitouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_shipin.png" alt="Shipin"></div>
+            <div class="en-name">Shipin</div>
+            <div class="filename">icon_shipin.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_shipinlight.png" alt="Shipinlight"></div>
+            <div class="en-name">Shipinlight</div>
+            <div class="filename">icon_shipinlight.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_shipintouch.png" alt="Shipintouch"></div>
+            <div class="en-name">Shipintouch</div>
+            <div class="filename">icon_shipintouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_shoptouch.png" alt="Shoptouch"></div>
+            <div class="en-name">Shoptouch</div>
+            <div class="filename">icon_shoptouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_shouchong2.png" alt="Shouchong2"></div>
+            <div class="en-name">Shouchong2</div>
+            <div class="filename">icon_shouchong2.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_shouliebi.png" alt="Shouliebi"></div>
+            <div class="en-name">Shouliebi</div>
+            <div class="filename">icon_shouliebi.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_songhaoli.png" alt="Songhaoli"></div>
+            <div class="en-name">Songhaoli</div>
+            <div class="filename">icon_songhaoli.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_songhaoli_1.png" alt="Songhaoli 1"></div>
+            <div class="en-name">Songhaoli 1</div>
+            <div class="filename">icon_songhaoli_1.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_songshenchongtouch.png" alt="Songshenchongtouch"></div>
+            <div class="en-name">Songshenchongtouch</div>
+            <div class="filename">icon_songshenchongtouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_suipian.png" alt="Suipian"></div>
+            <div class="en-name">Suipian</div>
+            <div class="filename">icon_suipian.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_suipiantouch.png" alt="Suipiantouch"></div>
+            <div class="en-name">Suipiantouch</div>
+            <div class="filename">icon_suipiantouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_talk.png" alt="Talk"></div>
+            <div class="en-name">Talk</div>
+            <div class="filename">icon_talk.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_talklight.png" alt="Talklight"></div>
+            <div class="en-name">Talklight</div>
+            <div class="filename">icon_talklight.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_tanxianzhuan.png" alt="Tanxianzhuan"></div>
+            <div class="en-name">Tanxianzhuan</div>
+            <div class="filename">icon_tanxianzhuan.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_tanxianzhuantouch.png" alt="Tanxianzhuantouch"></div>
+            <div class="en-name">Tanxianzhuantouch</div>
+            <div class="filename">icon_tanxianzhuantouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_tianfu.png" alt="Tianfu"></div>
+            <div class="en-name">Tianfu</div>
+            <div class="filename">icon_tianfu.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_tianfutouch.png" alt="Tianfutouch"></div>
+            <div class="en-name">Tianfutouch</div>
+            <div class="filename">icon_tianfutouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_tiaozhanquan.png" alt="Tiaozhanquan"></div>
+            <div class="en-name">Tiaozhanquan</div>
+            <div class="filename">icon_tiaozhanquan.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_tujiantouch.png" alt="Tujiantouch"></div>
+            <div class="en-name">Tujiantouch</div>
+            <div class="filename">icon_tujiantouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_vipfulitouch.png" alt="Vipfulitouch"></div>
+            <div class="en-name">Vipfulitouch</div>
+            <div class="filename">icon_vipfulitouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_xianshiqian.png" alt="Xianshiqian"></div>
+            <div class="en-name">Xianshiqian</div>
+            <div class="filename">icon_xianshiqian.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_xianshiqiantouch.png" alt="Xianshiqiantouch"></div>
+            <div class="en-name">Xianshiqiantouch</div>
+            <div class="filename">icon_xianshiqiantouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_xiedaijingti.png" alt="Xiedaijingti"></div>
+            <div class="en-name">Xiedaijingti</div>
+            <div class="filename">icon_xiedaijingti.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_xin.png" alt="Xin"></div>
+            <div class="en-name">Xin</div>
+            <div class="filename">icon_xin.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_xinxi.png" alt="Xinxi"></div>
+            <div class="en-name">Xinxi</div>
+            <div class="filename">icon_xinxi.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_xinxitouch.png" alt="Xinxitouch"></div>
+            <div class="en-name">Xinxitouch</div>
+            <div class="filename">icon_xinxitouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_yangchengwanfa.png" alt="Yangchengwanfa"></div>
+            <div class="en-name">Yangchengwanfa</div>
+            <div class="filename">icon_yangchengwanfa.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_yangchengwanfatouch.png" alt="Yangchengwanfatouch"></div>
+            <div class="en-name">Yangchengwanfatouch</div>
+            <div class="filename">icon_yangchengwanfatouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_yaoyaoletouch.png" alt="Yaoyaoletouch"></div>
+            <div class="en-name">Yaoyaoletouch</div>
+            <div class="filename">icon_yaoyaoletouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_yewaimaoxian.png" alt="Yewaimaoxian"></div>
+            <div class="en-name">Yewaimaoxian</div>
+            <div class="filename">icon_yewaimaoxian.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_zhuanzhuanletouch.png" alt="Zhuanzhuanletouch"></div>
+            <div class="en-name">Zhuanzhuanletouch</div>
+            <div class="filename">icon_zhuanzhuanletouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_zhujue.png" alt="Zhujue"></div>
+            <div class="en-name">Zhujue</div>
+            <div class="filename">icon_zhujue.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_zhujuetubiao.png" alt="Zhujuetubiao"></div>
+            <div class="en-name">Zhujuetubiao</div>
+            <div class="filename">icon_zhujuetubiao.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/icon_zuanshi.png" alt="Zuanshi"></div>
+            <div class="en-name">Zuanshi</div>
+            <div class="filename">icon_zuanshi.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/kuafuwanfa.png" alt="Kuafuwanfa"></div>
+            <div class="en-name">Kuafuwanfa</div>
+            <div class="filename">kuafuwanfa.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/kuafuwanfatouch.png" alt="Kuafuwanfatouch"></div>
+            <div class="en-name">Kuafuwanfatouch</div>
+            <div class="filename">kuafuwanfatouch.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/kuang_touxiang.png" alt="Kuang Touxiang"></div>
+            <div class="en-name">Kuang Touxiang</div>
+            <div class="filename">kuang_touxiang.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/kuang_touxiang_mask.png" alt="Kuang Touxiang Mask"></div>
+            <div class="en-name">Kuang Touxiang Mask</div>
+            <div class="filename">kuang_touxiang_mask.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/kuang_vip.png" alt="Kuang Vip"></div>
+            <div class="en-name">Kuang Vip</div>
+            <div class="filename">kuang_vip.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/plus.png" alt="Plus"></div>
+            <div class="en-name">Plus</div>
+            <div class="filename">plus.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/quan_01.png" alt="Quan 01"></div>
+            <div class="en-name">Quan 01</div>
+            <div class="filename">quan_01.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/renwu_cube_1.png" alt="Renwu Cube 1"></div>
+            <div class="en-name">Renwu Cube 1</div>
+            <div class="filename">renwu_cube_1.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/renwu_cube_2.png" alt="Renwu Cube 2"></div>
+            <div class="en-name">Renwu Cube 2</div>
+            <div class="filename">renwu_cube_2.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/renwu_cube_3.png" alt="Renwu Cube 3"></div>
+            <div class="en-name">Renwu Cube 3</div>
+            <div class="filename">renwu_cube_3.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/ring01.png" alt="Ring01"></div>
+            <div class="en-name">Ring01</div>
+            <div class="filename">ring01.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/shanguangbi.png" alt="Shanguangbi"></div>
+            <div class="en-name">Shanguangbi</div>
+            <div class="filename">shanguangbi.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/shenmilinpian.png" alt="Shenmilinpian"></div>
+            <div class="en-name">Shenmilinpian</div>
+            <div class="filename">shenmilinpian.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/shouliequan.png" alt="Shouliequan"></div>
+            <div class="en-name">Shouliequan</div>
+            <div class="filename">shouliequan.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/tanxianjingyan.png" alt="Tanxianjingyan"></div>
+            <div class="en-name">Tanxianjingyan</div>
+            <div class="filename">tanxianjingyan.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/tanxianshi.png" alt="Tanxianshi"></div>
+            <div class="en-name">Tanxianshi</div>
+            <div class="filename">tanxianshi.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/tianfudian.png" alt="Tianfudian"></div>
+            <div class="en-name">Tianfudian</div>
+            <div class="filename">tianfudian.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/tip_blue.png" alt="Tip Blue"></div>
+            <div class="en-name">Tip Blue</div>
+            <div class="filename">tip_blue.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/tip_yellow.png" alt="Tip Yellow"></div>
+            <div class="en-name">Tip Yellow</div>
+            <div class="filename">tip_yellow.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/tuisong_tip.png" alt="Tuisong Tip"></div>
+            <div class="en-name">Tuisong Tip</div>
+            <div class="filename">tuisong_tip.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/yangchengwanfa.png" alt="Yangchengwanfa"></div>
+            <div class="en-name">Yangchengwanfa</div>
+            <div class="filename">yangchengwanfa.png</div>
+        </div>
+        <div class="card mini">
+            <div class="icon-box"><img src="Xuat_Giao_Dien_UI/Bieu_Tuong_Tinh_Nang/yangchengwanfatouch.png" alt="Yangchengwanfatouch"></div>
+            <div class="en-name">Yangchengwanfatouch</div>
+            <div class="filename">yangchengwanfatouch.png</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Pokédại Chiến Reverse Engineering • Lưu trữ tại: <code>Xuat_Giao_Dien_UI\Bieu_Tuong_Tinh_Nang\</code>
+    </div>
+</body>
+</html>

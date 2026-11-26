@@ -1,0 +1,1839 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokedaichien - Trình Xem 32 Thú Cưỡi 3D + Animation (WebGL)</title>
+    <style>
+        :root {
+            --bg-dark: #060b14;
+            --bg-card: #111827;
+            --accent-cyan: #22d3ee;
+            --accent-gold: #fbbf24;
+            --accent-orange: #fb923c;
+            --accent-emerald: #34d399;
+            --accent-purple: #c084fc;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: radial-gradient(circle at 50% 0%, #0f2942 0%, var(--bg-dark) 58%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+        header {
+            background: rgba(10, 18, 32, 0.92);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(34, 211, 238, 0.28);
+            padding: 16px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        .header-container {
+            max-width: 1650px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, #22d3ee, #34d399, #fbbf24, #fb923c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 0.4px;
+        }
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.88rem;
+        }
+        .stats-bar {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .stat-pill {
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 5px 12px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .stat-pill span.val {
+            color: var(--accent-gold);
+            font-weight: 800;
+        }
+
+        /* 3D STAGE */
+        .stage-wrapper {
+            max-width: 1650px;
+            margin: 18px auto 12px;
+            padding: 0 24px;
+        }
+        .stage-card {
+            background: #08101e;
+            border: 2px solid rgba(34, 211, 238, 0.45);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75);
+        }
+        .stage-topbar {
+            background: linear-gradient(90deg, #0c192c, #162a45);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .stage-title-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .live-badge {
+            background: linear-gradient(135deg, #06b6d4, #10b981);
+            color: #04131c;
+            font-weight: 900;
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 999px;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            box-shadow: 0 0 12px rgba(34, 211, 238, 0.55);
+        }
+        .stage-name {
+            font-size: 1.18rem;
+            font-weight: 800;
+            color: #fff;
+        }
+        .stage-meta {
+            font-size: 0.8rem;
+            color: var(--accent-cyan);
+            font-family: Consolas, monospace;
+        }
+        .stage-controls {
+            display: flex;
+            gap: 7px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .ctrl-btn {
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            color: #e2e8f0;
+            padding: 6px 11px;
+            border-radius: 8px;
+            font-size: 0.79rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.18s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            text-decoration: none;
+        }
+        .ctrl-btn:hover {
+            background: #334155;
+            border-color: var(--accent-cyan);
+            color: #fff;
+        }
+        .ctrl-btn.active {
+            background: rgba(34, 211, 238, 0.22);
+            border-color: var(--accent-cyan);
+            color: #cffafe;
+        }
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 530px;
+            background: radial-gradient(circle at 50% 42%, #133554 0%, #091326 60%, #050a14 100%);
+            user-select: none;
+        }
+        #webglCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: grab;
+        }
+        #webglCanvas:active {
+            cursor: grabbing;
+        }
+        .skill-banner-toast {
+            position: absolute;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%) scale(0.9);
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(14, 116, 144, 0.92));
+            border: 2px solid var(--accent-cyan);
+            box-shadow: 0 0 28px rgba(34, 211, 238, 0.5);
+            padding: 8px 22px;
+            border-radius: 999px;
+            font-weight: 800;
+            font-size: 0.95rem;
+            color: #fff;
+            pointer-events: none;
+            opacity: 0;
+            transition: all 0.22s ease;
+            z-index: 15;
+        }
+        .skill-banner-toast.show {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+        }
+        .canvas-overlay-help {
+            position: absolute;
+            bottom: 12px;
+            left: 16px;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 7px 13px;
+            border-radius: 10px;
+            font-size: 0.76rem;
+            color: #cbd5e1;
+            pointer-events: none;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .canvas-overlay-help b {
+            color: var(--accent-gold);
+        }
+        .canvas-nav-arrows {
+            position: absolute;
+            bottom: 12px;
+            right: 16px;
+            display: flex;
+            gap: 8px;
+        }
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(9, 13, 22, 0.82);
+            backdrop-filter: blur(4px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            z-index: 20;
+            transition: opacity 0.2s;
+        }
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .spinner {
+            width: 44px;
+            height: 44px;
+            border: 4px solid rgba(34, 211, 238, 0.25);
+            border-top-color: var(--accent-cyan);
+            border-radius: 50%;
+            animation: spin 0.75s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ANIMATION DECK */
+        .skill-deck {
+            background: linear-gradient(180deg, #0b1626 0%, #0f172a 100%);
+            padding: 12px 18px;
+            border-top: 1px solid rgba(34, 211, 238, 0.22);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .skill-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .skill-buttons-group {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            flex-wrap: wrap;
+        }
+        .deck-label {
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: var(--accent-cyan);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-right: 4px;
+        }
+        .anim-btn {
+            background: rgba(30, 41, 59, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #e2e8f0;
+            padding: 7px 14px;
+            border-radius: 10px;
+            font-size: 0.81rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.16s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .anim-btn:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-cyan);
+            color: #fff;
+            background: #1e293b;
+        }
+        .anim-btn.active {
+            background: linear-gradient(135deg, #0891b2, #059669);
+            border-color: #22d3ee;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.45);
+        }
+        .anim-btn.skill-combo {
+            background: linear-gradient(135deg, rgba(217, 119, 6, 0.78), rgba(220, 38, 38, 0.78));
+            border: 1px solid #fbbf24;
+            color: #fef08a;
+        }
+        .anim-btn.skill-combo:hover, .anim-btn.skill-combo.active {
+            background: linear-gradient(135deg, #f59e0b, #ea580c);
+            color: #fff;
+            border-color: #fde047;
+            box-shadow: 0 0 22px rgba(245, 158, 11, 0.7);
+        }
+        .anim-playback-tools {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .timeline-slider {
+            width: 130px;
+            accent-color: var(--accent-cyan);
+            cursor: pointer;
+        }
+        .vfx-select {
+            background: #1e293b;
+            color: #f8fafc;
+            border: 1px solid rgba(34, 211, 238, 0.35);
+            border-radius: 8px;
+            padding: 5px 9px;
+            font-size: 0.77rem;
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .quick-selector {
+            background: #0a101d;
+            padding: 9px 18px;
+            border-top: 1px solid rgba(255, 255, 255, 0.07);
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            scrollbar-width: thin;
+            align-items: center;
+        }
+        .quick-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+            white-space: nowrap;
+            margin-right: 4px;
+        }
+        .quick-btn {
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #cbd5e1;
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .quick-btn:hover {
+            background: #1e293b;
+            color: #fff;
+            border-color: var(--accent-cyan);
+        }
+        .quick-btn.active {
+            background: linear-gradient(135deg, #0891b2, #059669);
+            color: #fff;
+            border-color: #22d3ee;
+            box-shadow: 0 3px 12px rgba(8, 145, 178, 0.45);
+        }
+
+        /* FILTER & SEARCH BAR */
+        .controls-bar {
+            max-width: 1650px;
+            margin: 16px auto 12px;
+            padding: 0 24px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: var(--text-main);
+            padding: 8px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.83rem;
+            transition: all 0.2s;
+        }
+        .tab-btn:hover {
+            background: rgba(34, 211, 238, 0.15);
+            border-color: var(--accent-cyan);
+        }
+        .tab-btn.active {
+            background: linear-gradient(135deg, #0891b2, #059669);
+            border-color: #22d3ee;
+            box-shadow: 0 4px 15px rgba(8, 145, 178, 0.4);
+        }
+        .search-box {
+            flex: 1;
+            min-width: 280px;
+            max-width: 430px;
+            position: relative;
+        }
+        .search-box input {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.92);
+            border: 1px solid rgba(34, 211, 238, 0.35);
+            color: var(--text-main);
+            padding: 9px 14px 9px 38px;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            outline: none;
+        }
+        .search-box input:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.2);
+        }
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        /* MOUNT GRID */
+        main {
+            max-width: 1650px;
+            margin: 14px auto;
+            padding: 0 24px;
+        }
+        .result-count-bar {
+            margin-bottom: 12px;
+            font-size: 0.86rem;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .mount-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(265px, 1fr));
+            gap: 16px;
+        }
+        .mount-card {
+            background: rgba(17, 24, 39, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .mount-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(34, 211, 238, 0.6);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.6);
+        }
+        .mount-card.selected {
+            border: 2px solid var(--accent-gold);
+            box-shadow: 0 0 22px rgba(251, 191, 36, 0.35);
+        }
+        .card-preview {
+            position: relative;
+            width: 100%;
+            height: 210px;
+            background: radial-gradient(circle at 50% 50%, #133554, #090d16);
+            overflow: hidden;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: transform 0.3s;
+        }
+        .mount-card:hover .card-preview img {
+            transform: scale(1.07);
+        }
+        .preview-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(9, 13, 22, 0.9) 0%, transparent 45%);
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            padding: 8px 10px;
+        }
+        .idx-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--accent-gold);
+            font-weight: 800;
+            font-size: 0.72rem;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-family: Consolas, monospace;
+        }
+        .cat-tag {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 6px;
+        }
+        .cat-Huyen_Thoai {
+            background: rgba(245, 158, 11, 0.22);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.45);
+        }
+        .cat-Bay {
+            background: rgba(34, 211, 238, 0.22);
+            color: #67e8f9;
+            border: 1px solid rgba(34, 211, 238, 0.45);
+        }
+        .cat-Mat_Dat {
+            background: rgba(52, 211, 153, 0.22);
+            color: #6ee7b7;
+            border: 1px solid rgba(52, 211, 153, 0.45);
+        }
+        .cat-Xe_Co_Khi {
+            background: rgba(192, 132, 252, 0.22);
+            color: #e9d5ff;
+            border: 1px solid rgba(192, 132, 252, 0.45);
+        }
+        .shiny-pill {
+            background: linear-gradient(135deg, #f59e0b, #eab308);
+            color: #0f172a;
+            font-size: 0.68rem;
+            font-weight: 900;
+            padding: 2px 7px;
+            border-radius: 6px;
+            margin-left: 5px;
+        }
+        .play-3d-pill {
+            background: linear-gradient(135deg, #0891b2, #059669);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.71rem;
+            font-weight: 700;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+        }
+        .card-body {
+            padding: 10px 12px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+        }
+        .mount-title {
+            font-size: 0.94rem;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.25;
+        }
+        .mount-mesh-id {
+            font-family: Consolas, monospace;
+            font-size: 0.73rem;
+            color: var(--accent-cyan);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mount-meta-row {
+            margin-top: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            padding-top: 6px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="header-container">
+        <div class="title-row">
+            <div>
+                <h1>POKEDAICHIEN - TRÌNH XEM 32 THÚ CƯỠI 3D (MOUNTS / ZUOQI) + ANIMATION</h1>
+                <div class="subtitle">Toàn bộ 32 Thú Cưỡi Thần Thú, Rồng Bay, Siêu Mô Tô, Robot & Phi Cơ kèm 82 chuyển động 3D WebGL (1457681642.upk)</div>
+            </div>
+            <div class="stats-bar">
+                <div class="stat-pill">Tổng Thú Cưỡi 3D: <span class="val">32 Mẫu</span></div>
+                <div class="stat-pill">Tổng Hoạt Ảnh: <span class="val">82 Clips</span></div>
+                <div class="stat-pill">Thần Thú Huyền Thoại: <span class="val">10</span></div>
+                <div class="stat-pill">Thú Cưỡi Bay: <span class="val">7</span></div>
+                <div class="stat-pill">Xe Mô Tô & Cơ Khí: <span class="val">5</span></div>
+                <div class="stat-pill">Bản Shiny: <span class="val">4</span></div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- 3D INTERACTIVE WEBGL VIEWER -->
+<section class="stage-wrapper" id="stageSection">
+    <div class="stage-card">
+        <div class="stage-topbar">
+            <div class="stage-title-box">
+                <span class="live-badge">3D MOUNT LIVE</span>
+                <div>
+                    <div class="stage-name" id="stageMountTitle">Đang tải mô hình Thú Cưỡi 3D...</div>
+                    <div class="stage-meta" id="stageMountMeta">Chọn động tác Đứng / Chạy / Bay bên dưới để xem Thú Cưỡi di chuyển 3D</div>
+                </div>
+            </div>
+            <div class="stage-controls">
+                <button class="ctrl-btn" onclick="resetCamera()">🎯 Góc Nhin Chuẩn</button>
+                <button class="ctrl-btn" id="btnAutoRotate" onclick="toggleAutoRotate()">🔄 Tự Xoay 360°</button>
+                <button class="ctrl-btn active" id="btnVfx" onclick="toggleVfx()">💨 Hiệu Ứng Tăng Tốc 3D</button>
+                <button class="ctrl-btn active" id="btnPedestal" onclick="togglePedestal()">💿 Bệ Đứng 3D</button>
+                <button class="ctrl-btn" id="btnWireframe" onclick="toggleWireframe()">🕸️ Khung Dây</button>
+                <button class="ctrl-btn" onclick="zoomCamera(0.82)">➕ Phóng To</button>
+                <button class="ctrl-btn" onclick="zoomCamera(1.22)">➖ Thu Nhỏ</button>
+                <a class="ctrl-btn" id="btnDownloadGlb" href="#" download>⬇️ Tải .GLB (Có Anim)</a>
+                <button class="ctrl-btn" onclick="toggleFullscreen()">⛶ Toàn Màn Hình</button>
+            </div>
+        </div>
+
+        <div class="canvas-container" id="canvasContainer">
+            <canvas id="webglCanvas"></canvas>
+            <div class="skill-banner-toast" id="skillToast">💨 Đang tăng tốc thú cưỡi 3D!</div>
+            <div class="loading-overlay" id="loadingOverlay">
+                <div class="spinner"></div>
+                <div id="loadingText" style="font-weight:700; color:#22d3ee;">Đang dựng mô hình Thú Cưỡi 3D & Hoạt Ảnh...</div>
+            </div>
+            <div class="canvas-overlay-help">
+                <span>🖱️ <b>Chuột trái + Kéo:</b> Xoay 360° quanh Thú Cưỡi</span>
+                <span>🖱️ <b>Chuột phải + Kéo:</b> Di chuyển (Pan)</span>
+                <span>🖱️ <b>Con lăn:</b> Phóng to / Thu nhỏ</span>
+                <span>⌨️ <b>Phím 1:</b> Đứng | <b>Phím 2:</b> Chạy / Bay | <b>Space:</b> Tạm dừng</span>
+            </div>
+            <div class="canvas-nav-arrows">
+                <button class="ctrl-btn" onclick="stepMount(-1)">◀ Thú Cưỡi Trước</button>
+                <button class="ctrl-btn" onclick="stepMount(1)">Thú Cưỡi Tiếp ▶</button>
+            </div>
+        </div>
+
+        <!-- ANIMATION & RUNWAY DECK -->
+        <div class="skill-deck">
+            <div class="skill-row">
+                <div class="skill-buttons-group" id="animButtonsBar">
+                    <span class="deck-label">🐎 Động Tác Thú Cưỡi:</span>
+                </div>
+                <div class="anim-playback-tools">
+                    <button class="ctrl-btn" id="btnPlayPause" onclick="toggleAnimPlay()">⏸️ Tạm Dừng</button>
+                    <input type="range" id="animTimeline" class="timeline-slider" min="0" max="1000" value="0" oninput="scrubTimeline(this.value)">
+                    <span id="animTimeLabel" style="font-family:Consolas,monospace; font-size:0.76rem; color:#94a3b8; min-width:82px;">0.00 / 0.00s</span>
+                    <select id="animSpeedSelect" class="vfx-select" onchange="setAnimSpeed(this.value)">
+                        <option value="0.5">🐢 Tốc độ 0.5x (Slow-Mo)</option>
+                        <option value="1.0" selected>⚡ Tốc độ 1.0x (Chuẩn)</option>
+                        <option value="1.5">🔥 Tốc độ 1.5x (Tăng Tốc)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="quick-selector" id="quickSelectorBar">
+            <span class="quick-label">⭐ Thú Cưỡi Nổi Bật:</span>
+        </div>
+    </div>
+</section>
+
+<!-- FILTER TABS & SEARCH -->
+<div class="controls-bar">
+    <div class="tabs">
+        <button class="tab-btn active" onclick="filterCategory('all', this)">🌐 Tất Cả (32)</button>
+        <button class="tab-btn" onclick="filterCategory('Huyen_Thoai', this)">👑 Thần Thú & Huyền Thoại (10)</button>
+        <button class="tab-btn" onclick="filterCategory('Bay', this)">🦅 Thú Cưỡi Bay & Trên Không (7)</button>
+        <button class="tab-btn" onclick="filterCategory('Mat_Dat', this)">🐾 Thú Cưỡi Mặt Đất (10)</button>
+        <button class="tab-btn" onclick="filterCategory('Xe_Co_Khi', this)">🏍️ Xe Mô Tô & Cơ Khí (5)</button>
+        <button class="tab-btn" onclick="filterCategory('Shiny', this)">✨ Phiên Bản Shiny (4)</button>
+    </div>
+    <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Tìm thú cưỡi (Koraidon, Miraidon, Kyogre, Groudon, Latias, Moto, Robot...)" oninput="applyFilters()">
+    </div>
+</div>
+
+<main>
+    <div class="result-count-bar">
+        <span id="resultCountText">Hiển thị 32 mô hình Thú Cưỡi 3D</span>
+        <span>💡 Nhấn vào bất kỳ thẻ Thú Cưỡi nào để nạp trực tiếp lên sân khấu 3D & xem hoạt ảnh Chạy / Bay</span>
+    </div>
+    <div class="mount-grid" id="mountGrid"></div>
+</main>
+
+<script>
+const mountData = [{"id": 1, "mount_id": "0001_HT_ZQ_GuLeDun", "mesh": "HT_ZQ_GuLeDun", "animset": "HT_ZQ_GuLeDun_AnimSet", "name_vn": "Koraidon (Cố Lặc Đốn - Thần Long Gen 9)", "name_en": "Koraidon Mount", "category": "Huyen_Thoai", "cat_label": "Thần Thú & Huyền Thoại", "is_shiny": false, "upk": "1457681642.upk", "verts": 3481, "tris": 4873, "tex_count": 1, "glb_size_kb": 1065.8, "glb_rel": "Thu_Cuoi_3D_Web/glb/0001_HT_ZQ_GuLeDun.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0001_HT_ZQ_GuLeDun.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0001_HT_ZQ_GuLeDun.png", "anim_clips": ["Run_GuLeDun", "Idle_GuLeDun", "Idle_ZuoQiShanYang", "Run_ZuoQiShanYang"]}, {"id": 2, "mount_id": "0002_HT_ZQ_MiLeDun", "mesh": "HT_ZQ_MiLeDun", "animset": "HT_ZQ_MiLeDun_AnimSet", "name_vn": "Miraidon (Mật Lặc Đốn - Mô Tô Điện Gen 9)", "name_en": "Miraidon Mount", "category": "Huyen_Thoai", "cat_label": "Thần Thú & Huyền Thoại", "is_shiny": false, "upk": "1457681642.upk", "verts": 4432, "tris": 5554, "tex_count": 1, "glb_size_kb": 1221.9, "glb_rel": "Thu_Cuoi_3D_Web/glb/0002_HT_ZQ_MiLeDun.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0002_HT_ZQ_MiLeDun.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0002_HT_ZQ_MiLeDun.png", "anim_clips": ["Idle_ZuoQiShanYang", "Run_ZuoQiShanYang", "Idle_MiLeDun", "Run_MiLeDun"]}, {"id": 3, "mount_id": "0003_HT_ZQ_GaiOuKa", "mesh": "HT_ZQ_GaiOuKa", "animset": "HT_ZQ_GaiOuKa_AnimSet", "name_vn": "Kyogre (Thần Đại Dương GaiOuKa)", "name_en": "Kyogre Mount", "category": "Huyen_Thoai", "cat_label": "Thần Thú & Huyền Thoại", "is_shiny": false, "upk": "1457681642.upk", "verts": 1766, "tris": 2576, "tex_count": 1, "glb_size_kb": 290.0, "glb_rel": "Thu_Cuoi_3D_Web/glb/0003_HT_ZQ_GaiOuKa.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0003_HT_ZQ_GaiOuKa.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0003_HT_ZQ_GaiOuKa.png", "anim_clips": ["Run_GaiOuKa", "Idle_GaiOuKa"]}, {"id": 4, "mount_id": "0004_HT_ZQ_ShangGuangGaiOuKa", "mesh": "HT_ZQ_ShangGuangGaiOuKa", "animset": "HT_ZQ_GaiOuKa_AnimSet", "name_vn": "Shiny Kyogre (Thần Đại Dương Sáng Chói)", "name_en": "Shiny Kyogre Mount", "category": "Huyen_Thoai", "cat_label": "Thần Thú & Huyền Thoại", "is_shiny": true, "upk": "1457681642.upk", "verts": 1766, "tris": 2576, "tex_count": 1, "glb_size_kb": 298.6, "glb_rel": "Thu_Cuoi_3D_Web/glb/0004_HT_ZQ_ShangGuangGaiOuKa.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0004_HT_ZQ_ShangGuangGaiOuKa.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0004_HT_ZQ_ShangGuangGaiOuKa.png", "anim_clips": ["Run_GaiOuKa", "Idle_GaiOuKa"]}, {"id": 5, "mount_id": "0005_HT_ZQ_GuLaDuo", "mesh": "HT_ZQ_GuLaDuo", "animset": "HT_ZQ_GuLaDuo_AnimSet", "name_vn": "Groudon (Thần Đại Địa GuLaDuo)", "name_en": "Groudon Mount", "category": "Huyen_Thoai", "cat_label": "Thần Thú & Huyền Thoại", "is_shiny": false, "upk": "1457681642.upk", "verts": 5450, "tris": 7006, "tex_count": 1, "glb_size_kb": 506.5, "glb_rel": "Thu_Cuoi_3D_Web/glb/0005_HT_ZQ_GuLaDuo.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0005_HT_ZQ_GuLaDuo.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0005_HT_ZQ_GuLaDuo.png", "anim_clips": ["Idle_GuLaDuo", "Run_GuLaDuo"]}, {"id": 6, "mount_id": "0006_HT_ZQ_SuoErJiaLeiOu", "mesh": "HT_ZQ_SuoErJiaLeiOu", "animset": "HT_ZQ_SuoErJiaLeiOu_AnimSet", "name_vn": "Solgaleo (Sư Tử Mặt Trời)", "name_en": "Solgaleo Mount", "category": "Huyen_Thoai", "cat_label": "Thần Thú & Huyền Thoại", "is_shiny": false, "upk": "1457681642.upk", "verts": 6981, "tris": 9974, "tex_count": 1, "glb_size_kb": 799.8, "glb_rel": "Thu_Cuoi_3D_Web/glb/0006_HT_ZQ_SuoErJiaLeiOu.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0006_HT_ZQ_SuoErJiaLeiOu.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0006_HT_ZQ_SuoErJiaLeiOu.png", "anim_clips": ["Idle_SuoErJiaLeiOu", "Run_SuoErJiaLeiOu"]}, {"id": 7, "mount_id": "0007_HT_ZQ_LuNaiYaLa", "mesh": "HT_ZQ_LuNaiYaLa", "animset": "HT_ZQ_LuNaiYaLa_AnimSet", "name_vn": "Lunala (Thần Dơi Mặt Trăng)", "name_en": "Lunala Mount", "category": "Bay", "cat_label": "Thú Cưỡi Bay & Trên Không", "is_shiny": false, "upk": "1457681642.upk", "verts": 6613, "tris": 9712, "tex_count": 1, "glb_size_kb": 707.6, "glb_rel": "Thu_Cuoi_3D_Web/glb/0007_HT_ZQ_LuNaiYaLa.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0007_HT_ZQ_LuNaiYaLa.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0007_HT_ZQ_LuNaiYaLa.png", "anim_clips": ["Run_LuNaiYaLa", "Idle_LuNaiYaLa"]}, {"id": 8, "mount_id": "0008_HT_ZQ_ZheErNiYaSi", "mesh": "HT_ZQ_ZheErNiYaSi", "animset": "HT_ZQ_ZheErNiYaSi_AnimSet", "name_vn": "Xerneas (Thần Hươu Sự Sống)", "name_en": "Xerneas Mount", "category": "Huyen_Thoai", "cat_label": "Thần Thú & Huyền Thoại", "is_shiny": false, "upk": "1457681642.upk", "verts": 2306, "tris": 3294, "tex_count": 1, "glb_size_kb": 367.6, "glb_rel": "Thu_Cuoi_3D_Web/glb/0008_HT_ZQ_ZheErNiYaSi.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0008_HT_ZQ_ZheErNiYaSi.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0008_HT_ZQ_ZheErNiYaSi.png", "anim_clips": ["Run_ZheErNiYaSi", "Idle_ZheErNiYaSi"]}, {"id": 9, "mount_id": "0009_HT_ZQ_KeLeiSeLiYa", "mesh": "HT_ZQ_KeLeiSeLiYa", "animset": "HT_ZQ_KeLeiSeLiYa_AnimSet", "name_vn": "Cresselia (Nữ Thần Mặt Trăng)", "name_en": "Cresselia Mount", "category": "Bay", "cat_label": "Thú Cưỡi Bay & Trên Không", "is_shiny": false, "upk": "1457681642.upk", "verts": 788, "tris": 1140, "tex_count": 1, "glb_size_kb": 163.2, "glb_rel": "Thu_Cuoi_3D_Web/glb/0009_HT_ZQ_KeLeiSeLiYa.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0009_HT_ZQ_KeLeiSeLiYa.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0009_HT_ZQ_KeLeiSeLiYa.png", "anim_clips": ["Run_KeLeiSeLiYa", "Idle_KeLeiSeLiYa"]}, {"id": 10, "mount_id": "0010_HT_ZQ_LaDiYaSi", "mesh": "HT_ZQ_LaDiYaSi", "animset": "HT_ZQ_LaDiYaSi_AnimSet", "name_vn": "Latias (Rồng Phi Thuyền Đỏ)", "name_en": "Latias Mount", "category": "Bay", "cat_label": "Thú Cưỡi Bay & Trên Không", "is_shiny": false, "upk": "1457681642.upk", "verts": 1002, "tris": 1446, "tex_count": 1, "glb_size_kb": 180.3, "glb_rel": "Thu_Cuoi_3D_Web/glb/0010_HT_ZQ_LaDiYaSi.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0010_HT_ZQ_LaDiYaSi.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0010_HT_ZQ_LaDiYaSi.png", "anim_clips": ["Run_LaDiYaSi", "Idle_LaDiYaSi"]}, {"id": 11, "mount_id": "0011_HT_ZQ_ShanGuangLaDiYaSi", "mesh": "HT_ZQ_ShanGuangLaDiYaSi", "animset": "HT_ZQ_LaDiYaSi_AnimSet", "name_vn": "Shiny Latias (Rồng Phi Thuyền Vàng)", "name_en": "Shiny Latias Mount", "category": "Bay", "cat_label": "Thú Cưỡi Bay & Trên Không", "is_shiny": true, "upk": "1457681642.upk", "verts": 1002, "tris": 1446, "tex_count": 1, "glb_size_kb": 186.0, "glb_rel": "Thu_Cuoi_3D_Web/glb/0011_HT_ZQ_ShanGuangLaDiYaSi.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0011_HT_ZQ_ShanGuangLaDiYaSi.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0011_HT_ZQ_ShanGuangLaDiYaSi.png", "anim_clips": ["Run_LaDiYaSi", "Idle_LaDiYaSi"]}, {"id": 12, "mount_id": "0012_HT_ZQ_GouPaLuWeng", "mesh": "HT_ZQ_GouPaLuWeng", "animset": "HT_ZQ_GouPaLuWeng_AnimSet", "name_vn": "Cobalion (Thần Thép Tam Kiếm)", "name_en": "Cobalion Mount", "category": "Huyen_Thoai", "cat_label": "Thần Thú & Huyền Thoại", "is_shiny": false, "upk": "1457681642.upk", "verts": 1230, "tris": 1776, "tex_count": 1, "glb_size_kb": 232.9, "glb_rel": "Thu_Cuoi_3D_Web/glb/0012_HT_ZQ_GouPaLuWeng.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0012_HT_ZQ_GouPaLuWeng.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0012_HT_ZQ_GouPaLuWeng.png", "anim_clips": ["Idle_ZuoQiShanYang", "Run_ZuoQiShanYang"]}, {"id": 13, "mount_id": "0013_HT_ZQ_BiLiJiWen", "mesh": "HT_ZQ_BiLiJiWen", "animset": "HT_ZQ_BiLiJiWen_AnimSet", "name_vn": "Virizion (Thần Thảo Tam Kiếm)", "name_en": "Virizion Mount", "category": "Huyen_Thoai", "cat_label": "Thần Thú & Huyền Thoại", "is_shiny": false, "upk": "1457681642.upk", "verts": 1442, "tris": 2030, "tex_count": 1, "glb_size_kb": 271.3, "glb_rel": "Thu_Cuoi_3D_Web/glb/0013_HT_ZQ_BiLiJiWen.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0013_HT_ZQ_BiLiJiWen.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0013_HT_ZQ_BiLiJiWen.png", "anim_clips": ["Idle_ZuoQiShanYang", "Run_ZuoQiShanYang"]}, {"id": 14, "mount_id": "0014_HT_ZQ_DaiLaJiWeng", "mesh": "HT_ZQ_DaiLaJiWeng", "animset": "HT_ZQ_DaiLaJiWeng_AnimSet", "name_vn": "Terrakion (Thần Nham Tam Kiếm)", "name_en": "Terrakion Mount", "category": "Huyen_Thoai", "cat_label": "Thần Thú & Huyền Thoại", "is_shiny": false, "upk": "1457681642.upk", "verts": 1494, "tris": 1646, "tex_count": 1, "glb_size_kb": 207.4, "glb_rel": "Thu_Cuoi_3D_Web/glb/0014_HT_ZQ_DaiLaJiWeng.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0014_HT_ZQ_DaiLaJiWeng.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0014_HT_ZQ_DaiLaJiWeng.png", "anim_clips": ["Idle_JDPiKaQiu", "Run_JDPiKaQiu"]}, {"id": 15, "mount_id": "0015_HT_ZQ_MegaBanJiLa", "mesh": "HT_ZQ_MegaBanJiLa", "animset": "HT_ZQ_MegaBanJiLa_AnimSet", "name_vn": "Mega Tyranitar (Bạo Chúa Đá Mega)", "name_en": "Mega Tyranitar Mount", "category": "Mat_Dat", "cat_label": "Thú Cưỡi Mặt Đất & Chiến Đấu", "is_shiny": false, "upk": "1457681642.upk", "verts": 3702, "tris": 2890, "tex_count": 1, "glb_size_kb": 479.5, "glb_rel": "Thu_Cuoi_3D_Web/glb/0015_HT_ZQ_MegaBanJiLa.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0015_HT_ZQ_MegaBanJiLa.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0015_HT_ZQ_MegaBanJiLa.png", "anim_clips": ["Run_MegaBanJiLa", "Idle_MegaBanJiLa"]}, {"id": 16, "mount_id": "0016_HT_ZQ_BanJiLa", "mesh": "HT_ZQ_BanJiLa", "animset": "HT_ZQ_BanJiLa_AnimSet", "name_vn": "Tyranitar (Khủng Long Giáp Đá)", "name_en": "Tyranitar Mount", "category": "Mat_Dat", "cat_label": "Thú Cưỡi Mặt Đất & Chiến Đấu", "is_shiny": false, "upk": "1457681642.upk", "verts": 2042, "tris": 2672, "tex_count": 1, "glb_size_kb": 351.3, "glb_rel": "Thu_Cuoi_3D_Web/glb/0016_HT_ZQ_BanJiLa.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0016_HT_ZQ_BanJiLa.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0016_HT_ZQ_BanJiLa.png", "anim_clips": ["Run_BanJiLa", "Idle_BanJiLa"]}, {"id": 17, "mount_id": "0017_HT_ZQ_TieJiaXiNiu", "mesh": "HT_ZQ_TieJiaXiNiu", "animset": "HT_ZQ_TieJiaXiNiu_AnimSet", "name_vn": "Rhyhorn (Tê Giác Giáp Thép)", "name_en": "Rhyhorn Mount", "category": "Mat_Dat", "cat_label": "Thú Cưỡi Mặt Đất & Chiến Đấu", "is_shiny": false, "upk": "1457681642.upk", "verts": 1396, "tris": 1822, "tex_count": 1, "glb_size_kb": 259.9, "glb_rel": "Thu_Cuoi_3D_Web/glb/0017_HT_ZQ_TieJiaXiNiu.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0017_HT_ZQ_TieJiaXiNiu.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0017_HT_ZQ_TieJiaXiNiu.png", "anim_clips": ["Run_TieJiaXiNiu", "Idle_TieJiaXiNiu"]}, {"id": 18, "mount_id": "0018_HT_ZQ_ZuoQiShanYang", "mesh": "HT_ZQ_ZuoQiShanYang", "animset": "HT_ZQ_ZuoQiShanYang_AnimSet", "name_vn": "Gogoat (Dê Núi Kalos)", "name_en": "Gogoat Mount", "category": "Mat_Dat", "cat_label": "Thú Cưỡi Mặt Đất & Chiến Đấu", "is_shiny": false, "upk": "1457681642.upk", "verts": 3028, "tris": 2474, "tex_count": 1, "glb_size_kb": 464.0, "glb_rel": "Thu_Cuoi_3D_Web/glb/0018_HT_ZQ_ZuoQiShanYang.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0018_HT_ZQ_ZuoQiShanYang.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0018_HT_ZQ_ZuoQiShanYang.png", "anim_clips": ["Idle_ZuoQiShanYang", "Run_ZuoQiShanYang"]}, {"id": 19, "mount_id": "0019_HT_ZQ_JuQianTangLang", "mesh": "HT_ZQ_JuQianTangLang", "animset": "HT_ZQ_JuQianTangLang_AnimSet", "name_vn": "Scizor (Bọ Ngựa Thép Khổng Lồ)", "name_en": "Scizor Mount", "category": "Mat_Dat", "cat_label": "Thú Cưỡi Mặt Đất & Chiến Đấu", "is_shiny": false, "upk": "1457681642.upk", "verts": 1762, "tris": 2412, "tex_count": 1, "glb_size_kb": 246.5, "glb_rel": "Thu_Cuoi_3D_Web/glb/0019_HT_ZQ_JuQianTangLang.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0019_HT_ZQ_JuQianTangLang.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0019_HT_ZQ_JuQianTangLang.png", "anim_clips": ["Run_JuQianTangLang", "Idle_JuQianTangLang"]}, {"id": 20, "mount_id": "0020_HT_ZQ_HouJingWang", "mesh": "HT_ZQ_HouJingWang", "animset": "HT_ZQ_HouJingWang_AnimSet", "name_vn": "Wailord (Cá Voi Khổng Lồ Kình Vương)", "name_en": "Wailord Mount", "category": "Bay", "cat_label": "Thú Cưỡi Bay & Trên Không", "is_shiny": false, "upk": "1457681642.upk", "verts": 1092, "tris": 1410, "tex_count": 1, "glb_size_kb": 313.3, "glb_rel": "Thu_Cuoi_3D_Web/glb/0020_HT_ZQ_HouJingWang.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0020_HT_ZQ_HouJingWang.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0020_HT_ZQ_HouJingWang.png", "anim_clips": ["Run_HouJingWang", "Idle_HouJingWang"]}, {"id": 21, "mount_id": "0021_HT_ZQ_JDPiKaQiu", "mesh": "HT_ZQ_JDPiKaQiu", "animset": "HT_ZQ_JDPiKaQiu_AnimSet", "name_vn": "Pikachu Cự Đại Hóa (Dynamax Ride)", "name_en": "Gigantamax Pikachu Mount", "category": "Mat_Dat", "cat_label": "Thú Cưỡi Mặt Đất & Chiến Đấu", "is_shiny": false, "upk": "1457681642.upk", "verts": 2112, "tris": 2896, "tex_count": 1, "glb_size_kb": 360.9, "glb_rel": "Thu_Cuoi_3D_Web/glb/0021_HT_ZQ_JDPiKaQiu.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0021_HT_ZQ_JDPiKaQiu.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0021_HT_ZQ_JDPiKaQiu.png", "anim_clips": ["Idle_JDPiKaQiu", "Run_JDPiKaQiu"]}, {"id": 22, "mount_id": "0022_HT_ZQ_Guiwang", "mesh": "HT_ZQ_Guiwang", "animset": "HT_ZQ_Guiwang_AnimSet", "name_vn": "Quỷ Vương Ma Ám (Ghost King)", "name_en": "Ghost King Mount", "category": "Bay", "cat_label": "Thú Cưỡi Bay & Trên Không", "is_shiny": false, "upk": "1457681642.upk", "verts": 946, "tris": 1046, "tex_count": 1, "glb_size_kb": 291.6, "glb_rel": "Thu_Cuoi_3D_Web/glb/0022_HT_ZQ_Guiwang.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0022_HT_ZQ_Guiwang.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0022_HT_ZQ_Guiwang.png", "anim_clips": ["Run_Bike", "Idle_Bike"]}, {"id": 23, "mount_id": "0023_HT_ZQ_YouWeiXuanYuCi", "mesh": "HT_ZQ_YouWeiXuanYuCi", "animset": "HT_ZQ_YouWeiXuanYuCi_AnimSet", "name_vn": "Basculegion Nữ (U Vĩ Huyền Ngư Hồng)", "name_en": "Basculegion Female Mount", "category": "Mat_Dat", "cat_label": "Thú Cưỡi Mặt Đất & Chiến Đấu", "is_shiny": false, "upk": "1457681642.upk", "verts": 1088, "tris": 1426, "tex_count": 1, "glb_size_kb": 700.6, "glb_rel": "Thu_Cuoi_3D_Web/glb/0023_HT_ZQ_YouWeiXuanYuCi.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0023_HT_ZQ_YouWeiXuanYuCi.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0023_HT_ZQ_YouWeiXuanYuCi.png", "anim_clips": ["Idle_YouWeiXuanYuCi", "Run_YouWeiXuanYuCi", "Idle_LuNaiYaLa", "Run_LuNaiYaLa", "Idle_ZuoQiShanYang", "Run_ZuoQiShanYang"]}, {"id": 24, "mount_id": "0024_HT_ZQ_ShanGuangYouWeiXuanYuCi", "mesh": "HT_ZQ_ShanGuangYouWeiXuanYuCi", "animset": "HT_ZQ_YouWeiXuanYuCi_AnimSet", "name_vn": "Shiny Basculegion Nữ (Sáng Chói)", "name_en": "Shiny Basculegion Female", "category": "Mat_Dat", "cat_label": "Thú Cưỡi Mặt Đất & Chiến Đấu", "is_shiny": true, "upk": "1457681642.upk", "verts": 1088, "tris": 1426, "tex_count": 1, "glb_size_kb": 704.2, "glb_rel": "Thu_Cuoi_3D_Web/glb/0024_HT_ZQ_ShanGuangYouWeiXuanYuCi.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0024_HT_ZQ_ShanGuangYouWeiXuanYuCi.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0024_HT_ZQ_ShanGuangYouWeiXuanYuCi.png", "anim_clips": ["Idle_YouWeiXuanYuCi", "Run_YouWeiXuanYuCi", "Idle_LuNaiYaLa", "Run_LuNaiYaLa", "Idle_ZuoQiShanYang", "Run_ZuoQiShanYang"]}, {"id": 25, "mount_id": "0025_HT_ZQ_YouWeiXuanYuXiong", "mesh": "HT_ZQ_YouWeiXuanYuXiong", "animset": "HT_ZQ_YouWeiXuanYuXiong_AnimSet", "name_vn": "Basculegion Nam (U Vĩ Huyền Ngư Đỏ)", "name_en": "Basculegion Male Mount", "category": "Mat_Dat", "cat_label": "Thú Cưỡi Mặt Đất & Chiến Đấu", "is_shiny": false, "upk": "1457681642.upk", "verts": 972, "tris": 1288, "tex_count": 1, "glb_size_kb": 544.7, "glb_rel": "Thu_Cuoi_3D_Web/glb/0025_HT_ZQ_YouWeiXuanYuXiong.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0025_HT_ZQ_YouWeiXuanYuXiong.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0025_HT_ZQ_YouWeiXuanYuXiong.png", "anim_clips": ["Run_YouWeiXuanYuXiong", "Idle_YouWeiXuanYuXiong", "Idle_LuNaiYaLa", "Run_LuNaiYaLa"]}, {"id": 26, "mount_id": "0026_HT_ZQ_ShanGuangYouWeiXuanYuXiong", "mesh": "HT_ZQ_ShanGuangYouWeiXuanYuXiong", "animset": "HT_ZQ_YouWeiXuanYuXiong_AnimSet", "name_vn": "Shiny Basculegion Nam (Sáng Chói)", "name_en": "Shiny Basculegion Male", "category": "Mat_Dat", "cat_label": "Thú Cưỡi Mặt Đất & Chiến Đấu", "is_shiny": true, "upk": "1457681642.upk", "verts": 972, "tris": 1288, "tex_count": 1, "glb_size_kb": 545.1, "glb_rel": "Thu_Cuoi_3D_Web/glb/0026_HT_ZQ_ShanGuangYouWeiXuanYuXiong.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0026_HT_ZQ_ShanGuangYouWeiXuanYuXiong.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0026_HT_ZQ_ShanGuangYouWeiXuanYuXiong.png", "anim_clips": ["Run_YouWeiXuanYuXiong", "Idle_YouWeiXuanYuXiong", "Idle_LuNaiYaLa", "Run_LuNaiYaLa"]}, {"id": 27, "mount_id": "0027_HT_ZQ_FeiJi_K", "mesh": "HT_ZQ_FeiJi_K", "animset": "HT_ZQ_FeiJi_K_AnimSet", "name_vn": "Phi Cơ Chiến Đấu (Chiến Đấu Cơ K)", "name_en": "Fighter Jet K", "category": "Xe_Co_Khi", "cat_label": "Xe Mô Tô & Cơ Khí", "is_shiny": false, "upk": "1457681642.upk", "verts": 1824, "tris": 1326, "tex_count": 1, "glb_size_kb": 287.0, "glb_rel": "Thu_Cuoi_3D_Web/glb/0027_HT_ZQ_FeiJi_K.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0027_HT_ZQ_FeiJi_K.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0027_HT_ZQ_FeiJi_K.png", "anim_clips": ["Run_FeiJi", "Idle_FeiJi"]}, {"id": 28, "mount_id": "0028_HT_ZQ_GuanGuangQiu", "mesh": "HT_ZQ_GuanGuangQiu", "animset": "HT_ZQ_GuanGuangQiu_AnimSet", "name_vn": "Khinh Khí Cầu Tham Quan (Hot Air Balloon)", "name_en": "Sightseeing Balloon", "category": "Bay", "cat_label": "Thú Cưỡi Bay & Trên Không", "is_shiny": false, "upk": "1457681642.upk", "verts": 1219, "tris": 1652, "tex_count": 1, "glb_size_kb": 245.8, "glb_rel": "Thu_Cuoi_3D_Web/glb/0028_HT_ZQ_GuanGuangQiu.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0028_HT_ZQ_GuanGuangQiu.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0028_HT_ZQ_GuanGuangQiu.png", "anim_clips": ["Idle_Motor", "Run_Motor"]}, {"id": 29, "mount_id": "0029_HT_ZQ_JiQiRen_K", "mesh": "HT_ZQ_JiQiRen_K", "animset": "HT_ZQ_JiQiRen_K_AnimSet", "name_vn": "Robot Chiến Đấu Cơ Giáp (Mech K)", "name_en": "Battle Mech K", "category": "Xe_Co_Khi", "cat_label": "Xe Mô Tô & Cơ Khí", "is_shiny": false, "upk": "1457681642.upk", "verts": 1475, "tris": 1280, "tex_count": 1, "glb_size_kb": 304.2, "glb_rel": "Thu_Cuoi_3D_Web/glb/0029_HT_ZQ_JiQiRen_K.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0029_HT_ZQ_JiQiRen_K.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0029_HT_ZQ_JiQiRen_K.png", "anim_clips": ["Run_JiQiRen", "Idle_JiQiRen"]}, {"id": 30, "mount_id": "0030_HT_ZQ_MoTuoXi", "mesh": "HT_ZQ_MoTuoXi", "animset": "HT_ZQ_MoTuoXi_AnimSet", "name_vn": "Siêu Mô Tô Thể Thao (Moto Xi)", "name_en": "Sport Motorcycle Xi", "category": "Xe_Co_Khi", "cat_label": "Xe Mô Tô & Cơ Khí", "is_shiny": false, "upk": "1457681642.upk", "verts": 2830, "tris": 3922, "tex_count": 1, "glb_size_kb": 835.8, "glb_rel": "Thu_Cuoi_3D_Web/glb/0030_HT_ZQ_MoTuoXi.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0030_HT_ZQ_MoTuoXi.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0030_HT_ZQ_MoTuoXi.png", "anim_clips": ["Run_ZuoQiShanYang", "Idle_ZuoQiShanYang", "Idle_MoTuoXi", "Run_MoTuoXi"]}, {"id": 31, "mount_id": "0031_HT_ZQ_MoTuoChe02_K", "mesh": "HT_ZQ_MoTuoChe02_K", "animset": "HT_ZQ_MoTuoChe02_K_AnimSet", "name_vn": "Siêu Mô Tô Tương Lai (Moto K-02)", "name_en": "Cyber Motorcycle K-02", "category": "Xe_Co_Khi", "cat_label": "Xe Mô Tô & Cơ Khí", "is_shiny": false, "upk": "1457681642.upk", "verts": 1799, "tris": 1408, "tex_count": 1, "glb_size_kb": 316.7, "glb_rel": "Thu_Cuoi_3D_Web/glb/0031_HT_ZQ_MoTuoChe02_K.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0031_HT_ZQ_MoTuoChe02_K.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0031_HT_ZQ_MoTuoChe02_K.png", "anim_clips": ["Run_MoTuoChe02", "Idle_MoTuoChe02"]}, {"id": 32, "mount_id": "0032_HT_ZQ_Motuohong", "mesh": "HT_ZQ_Motuohong", "animset": "HT_ZQ_Motuohong_AnimSet", "name_vn": "Siêu Mô Tô Đỏ Rực (Red Moto)", "name_en": "Red Racing Moto", "category": "Xe_Co_Khi", "cat_label": "Xe Mô Tô & Cơ Khí", "is_shiny": false, "upk": "1457681642.upk", "verts": 1003, "tris": 986, "tex_count": 1, "glb_size_kb": 311.8, "glb_rel": "Thu_Cuoi_3D_Web/glb/0032_HT_ZQ_Motuohong.glb", "js_rel": "Thu_Cuoi_3D_Web/js_data/0032_HT_ZQ_Motuohong.js", "preview_rel": "Thu_Cuoi_3D_Web/previews/0032_HT_ZQ_Motuohong.png", "anim_clips": ["Run_Motor", "Idle_Motor"]}];
+let currentCategory = 'all';
+let activeMountId = null;
+let filteredList = [...mountData];
+
+const featuredMeshes = [
+    "HT_ZQ_GuLeDun",
+    "HT_ZQ_MiLeDun",
+    "HT_ZQ_GaiOuKa",
+    "HT_ZQ_GuLaDuo",
+    "HT_ZQ_SuoErJiaLeiOu",
+    "HT_ZQ_LuNaiYaLa",
+    "HT_ZQ_ZheErNiYaSi",
+    "HT_ZQ_LaDiYaSi",
+    "HT_ZQ_MegaBanJiLa",
+    "HT_ZQ_JDPiKaQiu",
+    "HT_ZQ_FeiJi_K",
+    "HT_ZQ_JiQiRen_K",
+    "HT_ZQ_MoTuoChe02_K"
+];
+
+function formatAnimLabel(aname) {
+    const low = aname.toLowerCase();
+    if (low === 'idle' || low === 'idle_a' || low.includes('stand')) return `🧘 Đứng Chờ (${aname})`;
+    if (low.includes('run')) return `🏃 Chạy / Tăng Tốc (${aname})`;
+    if (low.includes('fly')) return `🦅 Bay Lượn (${aname})`;
+    if (low.includes('walk')) return `🚶 Di Chuyển (${aname})`;
+    if (low.includes('jump')) return `⬆️ Bật Nhảy (${aname})`;
+    return `🎬 ${aname}`;
+}
+
+// ============================================================================
+// NATIVE WEBGL 3D SKINNED ANIMATION + SPEED TRAIL VFX RENDERER
+// ============================================================================
+const canvas = document.getElementById('webglCanvas');
+const gl = canvas.getContext('webgl', { antialias: true, alpha: false });
+const extUint = gl ? gl.getExtension('OES_element_index_uint') : null;
+
+let shaderProgram = null;
+let drawCalls = [];
+let pedestalCalls = [];
+let activeTextures = [];
+let whiteSolidTex = null;
+
+let sceneNodes = [];
+let sceneRootIndices = [];
+let sceneSkins = [];
+let parsedAnimations = [];
+let currentAnim = null;
+let animTime = 0;
+let animPlaying = true;
+let animSpeed = 1.0;
+let lastFrameTs = performance.now();
+
+let vfxEnabled = true;
+let unitRingGeo = null;
+let unitSphereGeo = null;
+
+// Orbit Camera State (3/4 front-side showcase angle for mounts)
+let camYaw = 0.55;
+let camPitch = 0.22;
+let camDist = 4.5;
+let camTarget = [0, 0.8, 0];
+let sceneCenter = [0, 0.8, 0];
+let sceneRadius = 2.0;
+let sceneMinY = 0.0;
+let autoRotate = false;
+let wireframeMode = false;
+let showPedestal = true;
+
+const VS_SRC = `
+attribute vec3 aPos;
+attribute vec3 aNorm;
+attribute vec2 aUV;
+uniform mat4 uMVP;
+uniform mat4 uModel;
+varying vec3 vNorm;
+varying vec2 vUV;
+void main() {
+    gl_Position = uMVP * vec4(aPos, 1.0);
+    vNorm = mat3(uModel[0].xyz, uModel[1].xyz, uModel[2].xyz) * aNorm;
+    vUV = aUV;
+}
+`;
+
+const FS_SRC = `
+precision mediump float;
+varying vec3 vNorm;
+varying vec2 vUV;
+uniform sampler2D uTex;
+uniform vec4 uBaseColor;
+uniform float uAlphaCutoff;
+uniform int uUnlit;
+void main() {
+    vec4 texCol = texture2D(uTex, vUV) * uBaseColor;
+    if (texCol.a < uAlphaCutoff) discard;
+    if (uUnlit == 1) {
+        gl_FragColor = texCol;
+        return;
+    }
+    vec3 N = normalize(vNorm);
+    vec3 L1 = normalize(vec3(0.45, 0.85, 0.65));
+    vec3 L2 = normalize(vec3(-0.6, 0.4, -0.5));
+    float diff1 = max(dot(N, L1), 0.0);
+    float diff2 = max(dot(N, L2), 0.0);
+    float light = 0.58 + 0.40 * diff1 + 0.16 * diff2;
+    gl_FragColor = vec4(texCol.rgb * light, texCol.a);
+}
+`;
+
+function compileShader(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    return s;
+}
+
+function initWebGL() {
+    if (!gl) return;
+    const vs = compileShader(gl.VERTEX_SHADER, VS_SRC);
+    const fs = compileShader(gl.FRAGMENT_SHADER, FS_SRC);
+    shaderProgram = gl.createProgram();
+    gl.attachShader(shaderProgram, vs);
+    gl.attachShader(shaderProgram, fs);
+    gl.linkProgram(shaderProgram);
+    gl.useProgram(shaderProgram);
+
+    shaderProgram.aPos = gl.getAttribLocation(shaderProgram, 'aPos');
+    shaderProgram.aNorm = gl.getAttribLocation(shaderProgram, 'aNorm');
+    shaderProgram.aUV = gl.getAttribLocation(shaderProgram, 'aUV');
+    shaderProgram.uMVP = gl.getUniformLocation(shaderProgram, 'uMVP');
+    shaderProgram.uModel = gl.getUniformLocation(shaderProgram, 'uModel');
+    shaderProgram.uTex = gl.getUniformLocation(shaderProgram, 'uTex');
+    shaderProgram.uBaseColor = gl.getUniformLocation(shaderProgram, 'uBaseColor');
+    shaderProgram.uAlphaCutoff = gl.getUniformLocation(shaderProgram, 'uAlphaCutoff');
+    shaderProgram.uUnlit = gl.getUniformLocation(shaderProgram, 'uUnlit');
+
+    gl.enable(gl.DEPTH_TEST);
+    gl.depthFunc(gl.LEQUAL);
+    buildVfxUnitGeometries();
+    setupInputEvents();
+    requestAnimationFrame(renderLoop);
+}
+
+function createSolidTexture(r, g, b, a) {
+    const tex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([r, g, b, a]));
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    activeTextures.push(tex);
+    return tex;
+}
+
+function uploadStaticGeo(pos, norm, uv, idx) {
+    const posBuf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(pos), gl.STATIC_DRAW);
+    const normBuf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, normBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(norm), gl.STATIC_DRAW);
+    const uvBuf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, uvBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(uv), gl.STATIC_DRAW);
+    const idxBuf = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, idxBuf);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(idx), gl.STATIC_DRAW);
+    return { posBuf, normBuf, uvBuf, idxBuf, count: idx.length, indexType: gl.UNSIGNED_SHORT };
+}
+
+function buildVfxUnitGeometries() {
+    const segs = 40;
+    const rPos = [], rNorm = [], rUV = [], rIdx = [];
+    for (let i = 0; i <= segs; i++) {
+        const a = (i / segs) * Math.PI * 2;
+        const c = Math.cos(a), s = Math.sin(a);
+        rPos.push(c * 0.88, 0, s * 0.88, c * 1.0, 0, s * 1.0);
+        rNorm.push(0, 1, 0, 0, 1, 0);
+        rUV.push(0, 0, 1, 1);
+        if (i < segs) {
+            const b = i * 2;
+            rIdx.push(b, b+1, b+2, b+1, b+3, b+2);
+        }
+    }
+    unitRingGeo = uploadStaticGeo(rPos, rNorm, rUV, rIdx);
+
+    const sPos = [], sNorm = [], sUV = [], sIdx = [];
+    const lat = 8, lon = 12;
+    for (let i = 0; i <= lat; i++) {
+        const th = (i / lat) * Math.PI;
+        const sinT = Math.sin(th), cosT = Math.cos(th);
+        for (let j = 0; j <= lon; j++) {
+            const ph = (j / lon) * Math.PI * 2;
+            const x = sinT * Math.cos(ph), y = cosT, z = sinT * Math.sin(ph);
+            sPos.push(x, y, z); sNorm.push(x, y, z); sUV.push(j/lon, i/lat);
+        }
+    }
+    for (let i = 0; i < lat; i++) {
+        for (let j = 0; j < lon; j++) {
+            const f = i * (lon + 1) + j, s = f + lon + 1;
+            sIdx.push(f, s, f + 1, s, s + 1, f + 1);
+        }
+    }
+    unitSphereGeo = uploadStaticGeo(sPos, sNorm, sUV, sIdx);
+}
+
+function buildPedestalBuffers(radius, yPos) {
+    pedestalCalls = [];
+    const segs = 48;
+    const rOuter = radius * 0.80;
+    const rInner = radius * 0.65;
+
+    const discPos = [0, yPos - 0.005, 0];
+    const discNorm = [0, 1, 0];
+    const discUV = [0.5, 0.5];
+    const discIdx = [];
+    for (let i = 0; i <= segs; i++) {
+        const a = (i / segs) * Math.PI * 2;
+        discPos.push(Math.cos(a) * rOuter, yPos - 0.005, Math.sin(a) * rOuter);
+        discNorm.push(0, 1, 0);
+        discUV.push(0.5, 0.5);
+        if (i < segs) discIdx.push(0, i + 1, i + 2);
+    }
+    const g1 = uploadStaticGeo(discPos, discNorm, discUV, discIdx);
+    pedestalCalls.push({
+        ...g1, modelMat: mat4Identity(), tex: whiteSolidTex,
+        baseColor: [0.06, 0.22, 0.34, 1.0], alphaCutoff: 0.0, unlit: 1
+    });
+
+    const ringPos = [], ringNorm = [], ringUV = [], ringIdx = [];
+    for (let i = 0; i <= segs; i++) {
+        const a = (i / segs) * Math.PI * 2;
+        const c = Math.cos(a), s = Math.sin(a);
+        ringPos.push(c * rInner, yPos - 0.001, s * rInner, c * (rInner * 1.06), yPos - 0.001, s * (rInner * 1.06));
+        ringNorm.push(0, 1, 0, 0, 1, 0);
+        ringUV.push(0, 0, 1, 1);
+        if (i < segs) {
+            const b = i * 2;
+            ringIdx.push(b, b + 1, b + 2, b + 1, b + 3, b + 2);
+        }
+    }
+    const g2 = uploadStaticGeo(ringPos, ringNorm, ringUV, ringIdx);
+    pedestalCalls.push({
+        ...g2, modelMat: mat4Identity(), tex: whiteSolidTex,
+        baseColor: [0.15, 0.85, 0.95, 1.0], alphaCutoff: 0.0, unlit: 1
+    });
+}
+
+function mat4Identity() {
+    return new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
+}
+function mat4Multiply(a, b) {
+    const out = new Float32Array(16);
+    for (let c = 0; c < 4; c++) {
+        const b0 = b[c*4+0], b1 = b[c*4+1], b2 = b[c*4+2], b3 = b[c*4+3];
+        out[c*4+0] = a[0]*b0 + a[4]*b1 + a[8]*b2 + a[12]*b3;
+        out[c*4+1] = a[1]*b0 + a[5]*b1 + a[9]*b2 + a[13]*b3;
+        out[c*4+2] = a[2]*b0 + a[6]*b1 + a[10]*b2 + a[14]*b3;
+        out[c*4+3] = a[3]*b0 + a[7]*b1 + a[11]*b2 + a[15]*b3;
+    }
+    return out;
+}
+function mat4Perspective(fovy, aspect, near, far) {
+    const f = 1.0 / Math.tan(fovy / 2);
+    const nf = 1 / (near - far);
+    return new Float32Array([
+        f / aspect, 0, 0, 0,
+        0, f, 0, 0,
+        0, 0, (far + near) * nf, -1,
+        0, 0, (2 * far * near) * nf, 0
+    ]);
+}
+function mat4LookAt(eye, center, up) {
+    let zx = eye[0] - center[0], zy = eye[1] - center[1], zz = eye[2] - center[2];
+    let len = Math.hypot(zx, zy, zz) || 1;
+    zx /= len; zy /= len; zz /= len;
+    let xx = up[1]*zz - up[2]*zy, xy = up[2]*zx - up[0]*zz, xz = up[0]*zy - up[1]*zx;
+    len = Math.hypot(xx, xy, xz) || 1;
+    xx /= len; xy /= len; xz /= len;
+    let yx = zy*xz - zz*xy, yy = zz*xx - zx*xz, yz = zx*xy - zy*xx;
+    return new Float32Array([
+        xx, yx, zx, 0,
+        xy, yy, zy, 0,
+        xz, yz, zz, 0,
+        -(xx*eye[0] + xy*eye[1] + xz*eye[2]),
+        -(yx*eye[0] + yy*eye[1] + yz*eye[2]),
+        -(zx*eye[0] + zy*eye[1] + zz*eye[2]),
+        1
+    ]);
+}
+function mat4FromTRS(t, q, s) {
+    const x = q[0], y = q[1], z = q[2], w = q[3];
+    const x2 = x + x, y2 = y + y, z2 = z + z;
+    const xx = x * x2, xy = x * y2, xz = x * z2;
+    const yy = y * y2, yz = y * z2, zz = z * z2;
+    const wx = w * x2, wy = w * y2, wz = w * z2;
+    const sx = s[0], sy = s[1], sz = s[2];
+    return new Float32Array([
+        (1 - (yy + zz)) * sx, (xy + wz) * sx, (xz - wy) * sx, 0,
+        (xy - wz) * sy, (1 - (xx + zz)) * sy, (yz + wx) * sy, 0,
+        (xz + wy) * sz, (yz - wx) * sz, (1 - (xx + yy)) * sz, 0,
+        t[0], t[1], t[2], 1
+    ]);
+}
+function quatSlerp(a, b, t) {
+    let ax = a[0], ay = a[1], az = a[2], aw = a[3];
+    let bx = b[0], by = b[1], bz = b[2], bw = b[3];
+    let cosom = ax * bx + ay * by + az * bz + aw * bw;
+    if (cosom < 0.0) {
+        cosom = -cosom;
+        bx = -bx; by = -by; bz = -bz; bw = -bw;
+    }
+    let scale0, scale1;
+    if (1.0 - cosom > 0.0001) {
+        const omega = Math.acos(Math.min(1.0, cosom));
+        const sinom = Math.sin(omega);
+        scale0 = Math.sin((1.0 - t) * omega) / sinom;
+        scale1 = Math.sin(t * omega) / sinom;
+    } else {
+        scale0 = 1.0 - t;
+        scale1 = t;
+    }
+    const rx = scale0 * ax + scale1 * bx;
+    const ry = scale0 * ay + scale1 * by;
+    const rz = scale0 * az + scale1 * bz;
+    const rw = scale0 * aw + scale1 * bw;
+    const len = Math.hypot(rx, ry, rz, rw) || 1.0;
+    return [rx / len, ry / len, rz / len, rw / len];
+}
+
+function setupInputEvents() {
+    let dragging = false;
+    let dragButton = 0;
+    let lastX = 0, lastY = 0;
+
+    canvas.addEventListener('contextmenu', e => e.preventDefault());
+    canvas.addEventListener('mousedown', e => {
+        dragging = true;
+        dragButton = e.button;
+        lastX = e.clientX;
+        lastY = e.clientY;
+    });
+    window.addEventListener('mouseup', () => dragging = false);
+    window.addEventListener('mousemove', e => {
+        if (!dragging) return;
+        const dx = e.clientX - lastX;
+        const dy = e.clientY - lastY;
+        lastX = e.clientX;
+        lastY = e.clientY;
+
+        if (dragButton === 0 && !e.shiftKey) {
+            camYaw -= dx * 0.008;
+            camPitch = Math.max(-1.45, Math.min(1.48, camPitch + dy * 0.008));
+        } else {
+            const panSpeed = camDist * 0.0014;
+            const rightX = Math.cos(camYaw), rightZ = -Math.sin(camYaw);
+            camTarget[0] -= rightX * dx * panSpeed;
+            camTarget[2] -= rightZ * dx * panSpeed;
+            camTarget[1] += dy * panSpeed;
+        }
+    });
+    canvas.addEventListener('wheel', e => {
+        e.preventDefault();
+        const factor = e.deltaY > 0 ? 1.12 : 0.89;
+        camDist = Math.max(sceneRadius * 0.25, Math.min(sceneRadius * 12.0, camDist * factor));
+    }, { passive: false });
+
+    window.addEventListener('keydown', e => {
+        if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+        if (e.code === 'Space') { e.preventDefault(); toggleAnimPlay(); }
+        else if (e.key === '1' && parsedAnimations[0]) setActiveAnimation(parsedAnimations[0], true);
+        else if (e.key === '2' && parsedAnimations[1]) setActiveAnimation(parsedAnimations[1], true);
+    });
+}
+
+function resetCamera() {
+    camTarget = [...sceneCenter];
+    camYaw = 0.55;
+    camPitch = 0.22;
+    camDist = sceneRadius * 2.25;
+}
+function zoomCamera(factor) {
+    camDist = Math.max(sceneRadius * 0.25, Math.min(sceneRadius * 12.0, camDist * factor));
+}
+function toggleAutoRotate() {
+    autoRotate = !autoRotate;
+    document.getElementById('btnAutoRotate').classList.toggle('active', autoRotate);
+}
+function toggleVfx() {
+    vfxEnabled = !vfxEnabled;
+    document.getElementById('btnVfx').classList.toggle('active', vfxEnabled);
+}
+function togglePedestal() {
+    showPedestal = !showPedestal;
+    document.getElementById('btnPedestal').classList.toggle('active', showPedestal);
+}
+function toggleWireframe() {
+    wireframeMode = !wireframeMode;
+    document.getElementById('btnWireframe').classList.toggle('active', wireframeMode);
+}
+function toggleFullscreen() {
+    const el = document.getElementById('stageSection');
+    if (!document.fullscreenElement) el.requestFullscreen().catch(() => {});
+    else document.exitFullscreen();
+}
+
+function base64ToArrayBuffer(b64) {
+    const binStr = atob(b64);
+    const len = binStr.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) bytes[i] = binStr.charCodeAt(i);
+    return bytes.buffer;
+}
+
+window.onMountGlbLoaded = async function(mountId, b64Data) {
+    if (mountId !== activeMountId) return;
+    try {
+        const buffer = base64ToArrayBuffer(b64Data);
+        await parseAndUploadGLB(buffer);
+        document.getElementById('loadingOverlay').classList.add('hidden');
+    } catch (err) {
+        console.error("GLB parse error:", err);
+        document.getElementById('loadingText').textContent = "Lỗi giải mã GLB: " + err.message;
+    }
+};
+
+async function parseAndUploadGLB(arrayBuffer) {
+    drawCalls = [];
+    pedestalCalls = [];
+    for (const t of activeTextures) gl.deleteTexture(t);
+    activeTextures = [];
+    whiteSolidTex = createSolidTexture(255, 255, 255, 255);
+
+    const dv = new DataView(arrayBuffer);
+    if (dv.getUint32(0, true) !== 0x46546C67) throw new Error("Invalid GLB magic");
+
+    const jsonLen = dv.getUint32(12, true);
+    const gltf = JSON.parse(new TextDecoder('utf-8').decode(new Uint8Array(arrayBuffer, 20, jsonLen)));
+    const binOffset = 20 + jsonLen + 8;
+
+    function getAccessorData(accIdx) {
+        if (accIdx === undefined || accIdx === null) return null;
+        const acc = gltf.accessors[accIdx];
+        const bv = gltf.bufferViews[acc.bufferView];
+        const byteOffset = binOffset + (bv.byteOffset || 0) + (acc.byteOffset || 0);
+        const numComps = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4, MAT4: 16 }[acc.type] || 1;
+        const count = acc.count * numComps;
+        let arr = null;
+        if (acc.componentType === 5126) arr = new Float32Array(arrayBuffer, byteOffset, count);
+        else if (acc.componentType === 5123) arr = new Uint16Array(arrayBuffer, byteOffset, count);
+        else if (acc.componentType === 5125) arr = new Uint32Array(arrayBuffer, byteOffset, count);
+        else if (acc.componentType === 5121) arr = new Uint8Array(arrayBuffer, byteOffset, count);
+        if (acc.normalized && acc.componentType === 5121 && arr) {
+            const fArr = new Float32Array(count);
+            for (let i = 0; i < count; i++) fArr[i] = arr[i] / 255.0;
+            return fArr;
+        }
+        if (acc.normalized && acc.componentType === 5123 && arr) {
+            const fArr = new Float32Array(count);
+            for (let i = 0; i < count; i++) fArr[i] = arr[i] / 65535.0;
+            return fArr;
+        }
+        return arr;
+    }
+
+    const glTextures = [];
+    if (gltf.images && gltf.images.length > 0) {
+        const loadedImgs = await Promise.all(gltf.images.map(imgDef => new Promise(resolve => {
+            if (imgDef.bufferView !== undefined) {
+                const bv = gltf.bufferViews[imgDef.bufferView];
+                const imgBytes = new Uint8Array(arrayBuffer, binOffset + (bv.byteOffset || 0), bv.byteLength);
+                const blob = new Blob([imgBytes], { type: imgDef.mimeType || 'image/png' });
+                const url = URL.createObjectURL(blob);
+                const image = new Image();
+                image.onload = () => {
+                    const tex = gl.createTexture();
+                    gl.bindTexture(gl.TEXTURE_2D, tex);
+                    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+                    const isPOT = (image.width & (image.width - 1)) === 0 && (image.height & (image.height - 1)) === 0;
+                    if (isPOT) {
+                        gl.generateMipmap(gl.TEXTURE_2D);
+                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+                    } else {
+                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                    }
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                    URL.revokeObjectURL(url);
+                    activeTextures.push(tex);
+                    resolve(tex);
+                };
+                image.onerror = () => { URL.revokeObjectURL(url); resolve(whiteSolidTex); };
+                image.src = url;
+            } else resolve(whiteSolidTex);
+        })));
+        if (gltf.textures) {
+            for (const tDef of gltf.textures) glTextures.push(loadedImgs[tDef.source] || whiteSolidTex);
+        }
+    }
+
+    sceneNodes = (gltf.nodes || []).map(n => ({
+        name: n.name || '',
+        children: n.children || [],
+        mesh: n.mesh,
+        skin: n.skin,
+        baseT: n.translation ? [...n.translation] : [0, 0, 0],
+        baseR: n.rotation ? [...n.rotation] : [0, 0, 0, 1],
+        baseS: n.scale ? [...n.scale] : [1, 1, 1],
+        curT: n.translation ? [...n.translation] : [0, 0, 0],
+        curR: n.rotation ? [...n.rotation] : [0, 0, 0, 1],
+        curS: n.scale ? [...n.scale] : [1, 1, 1],
+        worldMat: mat4Identity()
+    }));
+    const sceneDef = gltf.scenes ? gltf.scenes[gltf.scene || 0] : { nodes: [0] };
+    sceneRootIndices = sceneDef.nodes || [0];
+
+    sceneSkins = (gltf.skins || []).map(s => {
+        const ibmRaw = getAccessorData(s.inverseBindMatrices);
+        const ibms = [];
+        for (let i = 0; i < s.joints.length; i++) {
+            ibms.push(ibmRaw ? new Float32Array(ibmRaw.buffer, ibmRaw.byteOffset + i * 64, 16) : mat4Identity());
+        }
+        return {
+            joints: s.joints,
+            ibms,
+            jointMats: s.joints.map(() => mat4Identity())
+        };
+    });
+
+    parsedAnimations = (gltf.animations || []).map(a => {
+        let duration = 0;
+        const samplers = a.samplers.map(s => {
+            const input = getAccessorData(s.input);
+            const output = getAccessorData(s.output);
+            if (input && input.length > 0 && input[input.length - 1] > duration) {
+                duration = input[input.length - 1];
+            }
+            return { input, output, interpolation: s.interpolation || 'LINEAR' };
+        });
+        const channels = a.channels.map(c => ({
+            sampler: samplers[c.sampler],
+            nodeIdx: c.target.node,
+            path: c.target.path
+        }));
+        return { name: a.name || 'Anim', duration: Math.max(duration, 0.033), channels };
+    });
+
+    // Sort Idle first, then Run/Fly
+    parsedAnimations.sort((a, b) => {
+        const ia = /idle/i.test(a.name) ? 0 : (/run|fly/i.test(a.name) ? 1 : 2);
+        const ib = /idle/i.test(b.name) ? 0 : (/run|fly/i.test(b.name) ? 1 : 2);
+        return ia - ib;
+    });
+
+    for (let nIdx = 0; nIdx < sceneNodes.length; nIdx++) {
+        const node = sceneNodes[nIdx];
+        if (node.mesh === undefined) continue;
+        const mesh = gltf.meshes[node.mesh];
+        for (const prim of mesh.primitives) {
+            const basePos = getAccessorData(prim.attributes.POSITION);
+            if (!basePos) continue;
+            const baseNorm = getAccessorData(prim.attributes.NORMAL);
+            const uvArr = getAccessorData(prim.attributes.TEXCOORD_0);
+            const jointsArr = getAccessorData(prim.attributes.JOINTS_0);
+            const weightsArr = getAccessorData(prim.attributes.WEIGHTS_0);
+            const idxArr = getAccessorData(prim.indices);
+
+            const numVerts = basePos.length / 3;
+            const skinnedPos = new Float32Array(basePos);
+            const skinnedNorm = baseNorm ? new Float32Array(baseNorm) : null;
+
+            const posBuf = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
+            gl.bufferData(gl.ARRAY_BUFFER, skinnedPos, gl.DYNAMIC_DRAW);
+
+            let normBuf = null;
+            if (skinnedNorm) {
+                normBuf = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, normBuf);
+                gl.bufferData(gl.ARRAY_BUFFER, skinnedNorm, gl.DYNAMIC_DRAW);
+            }
+
+            let uvBuf = null;
+            if (uvArr) {
+                uvBuf = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, uvBuf);
+                gl.bufferData(gl.ARRAY_BUFFER, uvArr, gl.STATIC_DRAW);
+            }
+
+            let idxBuf = null;
+            let indexType = gl.UNSIGNED_SHORT;
+            let count = numVerts;
+            if (idxArr) {
+                idxBuf = gl.createBuffer();
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, idxBuf);
+                if (idxArr instanceof Uint32Array && !extUint) {
+                    const u16 = new Uint16Array(idxArr.length);
+                    for (let k = 0; k < idxArr.length; k++) u16[k] = idxArr[k];
+                    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, u16, gl.STATIC_DRAW);
+                } else {
+                    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, idxArr, gl.STATIC_DRAW);
+                    indexType = (idxArr instanceof Uint32Array) ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT;
+                }
+                count = idxArr.length;
+            }
+
+            let tex = whiteSolidTex;
+            let baseColor = [1, 1, 1, 1];
+            let alphaCutoff = 0.0;
+            if (prim.material !== undefined && gltf.materials && gltf.materials[prim.material]) {
+                const mat = gltf.materials[prim.material];
+                const pbr = mat.pbrMetallicRoughness || {};
+                if (pbr.baseColorFactor) baseColor = pbr.baseColorFactor;
+                if (pbr.baseColorTexture && glTextures[pbr.baseColorTexture.index]) {
+                    tex = glTextures[pbr.baseColorTexture.index];
+                }
+                if (mat.alphaMode === 'MASK') alphaCutoff = mat.alphaCutoff !== undefined ? mat.alphaCutoff : 0.5;
+            }
+
+            drawCalls.push({
+                nodeIdx: nIdx,
+                skinIdx: node.skin !== undefined ? node.skin : (sceneSkins.length > 0 ? 0 : -1),
+                basePos, baseNorm, jointsArr, weightsArr,
+                skinnedPos, skinnedNorm,
+                posBuf, normBuf, uvBuf, idxBuf,
+                count, indexType,
+                modelMat: mat4Identity(),
+                tex, baseColor, alphaCutoff, unlit: 0
+            });
+        }
+    }
+
+    buildAnimationButtonsUI();
+    const runOrIdle = parsedAnimations.find(a => /run|fly/i.test(a.name)) || parsedAnimations[0] || null;
+    setActiveAnimation(runOrIdle, false);
+    evaluateSkeletalAnimation(0);
+    computeSkinnedBounds();
+    buildPedestalBuffers(sceneRadius, sceneMinY);
+    resetCamera();
+}
+
+function computeSkinnedBounds() {
+    let bMin = [Infinity, Infinity, Infinity];
+    let bMax = [-Infinity, -Infinity, -Infinity];
+    for (const dc of drawCalls) {
+        const arr = dc.skinnedPos;
+        for (let i = 0; i < arr.length; i += 3) {
+            const x = arr[i], y = arr[i+1], z = arr[i+2];
+            if (x < bMin[0]) bMin[0] = x;
+            if (y < bMin[1]) bMin[1] = y;
+            if (z < bMin[2]) bMin[2] = z;
+            if (x > bMax[0]) bMax[0] = x;
+            if (y > bMax[1]) bMax[1] = y;
+            if (z > bMax[2]) bMax[2] = z;
+        }
+    }
+    if (bMin[0] < Infinity) {
+        sceneCenter = [(bMin[0]+bMax[0])*0.5, (bMin[1]+bMax[1])*0.5, (bMin[2]+bMax[2])*0.5];
+        sceneMinY = bMin[1];
+        sceneRadius = Math.max(Math.hypot(bMax[0]-bMin[0], bMax[1]-bMin[1], bMax[2]-bMin[2]) * 0.5, 0.4);
+    } else {
+        sceneCenter = [0, 0.8, 0];
+        sceneMinY = 0.0;
+        sceneRadius = 2.0;
+    }
+}
+
+function evaluateSkeletalAnimation(tSec) {
+    for (const n of sceneNodes) {
+        n.curT[0] = n.baseT[0]; n.curT[1] = n.baseT[1]; n.curT[2] = n.baseT[2];
+        n.curR[0] = n.baseR[0]; n.curR[1] = n.baseR[1]; n.curR[2] = n.baseR[2]; n.curR[3] = n.baseR[3];
+        n.curS[0] = n.baseS[0]; n.curS[1] = n.baseS[1]; n.curS[2] = n.baseS[2];
+    }
+
+    if (currentAnim) {
+        for (const ch of currentAnim.channels) {
+            const samp = ch.sampler;
+            const times = samp.input;
+            const vals = samp.output;
+            if (!times || !vals || times.length === 0) continue;
+            const node = sceneNodes[ch.nodeIdx];
+            if (!node) continue;
+
+            const nFrames = times.length;
+            let idx0 = 0, idx1 = 0, alpha = 0.0;
+            if (tSec <= times[0] || nFrames === 1) {
+                idx0 = idx1 = 0; alpha = 0.0;
+            } else if (tSec >= times[nFrames - 1]) {
+                idx0 = idx1 = nFrames - 1; alpha = 0.0;
+            } else {
+                let lo = 0, hi = nFrames - 1;
+                while (lo + 1 < hi) {
+                    const mid = (lo + hi) >> 1;
+                    if (times[mid] <= tSec) lo = mid;
+                    else hi = mid;
+                }
+                idx0 = lo; idx1 = hi;
+                const dt = times[idx1] - times[idx0];
+                alpha = dt > 1e-6 ? (tSec - times[idx0]) / dt : 0.0;
+            }
+
+            if (ch.path === 'translation') {
+                const o0 = idx0 * 3, o1 = idx1 * 3;
+                node.curT[0] = vals[o0] + (vals[o1] - vals[o0]) * alpha;
+                node.curT[1] = vals[o0+1] + (vals[o1+1] - vals[o0+1]) * alpha;
+                node.curT[2] = vals[o0+2] + (vals[o1+2] - vals[o0+2]) * alpha;
+            } else if (ch.path === 'rotation') {
+                const o0 = idx0 * 4, o1 = idx1 * 4;
+                const q = quatSlerp(
+                    [vals[o0], vals[o0+1], vals[o0+2], vals[o0+3]],
+                    [vals[o1], vals[o1+1], vals[o1+2], vals[o1+3]],
+                    alpha
+                );
+                node.curR[0] = q[0]; node.curR[1] = q[1]; node.curR[2] = q[2]; node.curR[3] = q[3];
+            }
+        }
+    }
+
+    function updateNodeHierarchy(nIdx, parentMat) {
+        const n = sceneNodes[nIdx];
+        const localMat = mat4FromTRS(n.curT, n.curR, n.curS);
+        n.worldMat = mat4Multiply(parentMat, localMat);
+        for (const cIdx of n.children) updateNodeHierarchy(cIdx, n.worldMat);
+    }
+    const ident = mat4Identity();
+    for (const rIdx of sceneRootIndices) updateNodeHierarchy(rIdx, ident);
+
+    for (const skin of sceneSkins) {
+        for (let j = 0; j < skin.joints.length; j++) {
+            const jointNode = sceneNodes[skin.joints[j]];
+            skin.jointMats[j] = mat4Multiply(jointNode.worldMat, skin.ibms[j]);
+        }
+    }
+
+    for (const dc of drawCalls) {
+        if (dc.skinIdx >= 0 && dc.skinIdx < sceneSkins.length && dc.jointsArr && dc.weightsArr) {
+            const jMats = sceneSkins[dc.skinIdx].jointMats;
+            const bPos = dc.basePos;
+            const bNorm = dc.baseNorm;
+            const sPos = dc.skinnedPos;
+            const sNorm = dc.skinnedNorm;
+            const js = dc.jointsArr;
+            const ws = dc.weightsArr;
+            const vCount = bPos.length / 3;
+
+            for (let i = 0; i < vCount; i++) {
+                const i3 = i * 3, i4 = i * 4;
+                const vx = bPos[i3], vy = bPos[i3+1], vz = bPos[i3+2];
+                const nx = bNorm ? bNorm[i3] : 0, ny = bNorm ? bNorm[i3+1] : 1, nz = bNorm ? bNorm[i3+2] : 0;
+                let px = 0, py = 0, pz = 0;
+                let rnx = 0, rny = 0, rnz = 0;
+
+                for (let k = 0; k < 4; k++) {
+                    const w = ws[i4 + k];
+                    if (w <= 0) continue;
+                    const m = jMats[js[i4 + k]];
+                    if (!m) continue;
+                    px += w * (m[0]*vx + m[4]*vy + m[8]*vz + m[12]);
+                    py += w * (m[1]*vx + m[5]*vy + m[9]*vz + m[13]);
+                    pz += w * (m[2]*vx + m[6]*vy + m[10]*vz + m[14]);
+                    if (sNorm) {
+                        rnx += w * (m[0]*nx + m[4]*ny + m[8]*nz);
+                        rny += w * (m[1]*nx + m[5]*ny + m[9]*nz);
+                        rnz += w * (m[2]*nx + m[6]*ny + m[10]*nz);
+                    }
+                }
+                sPos[i3] = px; sPos[i3+1] = py; sPos[i3+2] = pz;
+                if (sNorm) {
+                    sNorm[i3] = rnx; sNorm[i3+1] = rny; sNorm[i3+2] = rnz;
+                }
+            }
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, dc.posBuf);
+            gl.bufferSubData(gl.ARRAY_BUFFER, 0, sPos);
+            if (dc.normBuf && sNorm) {
+                gl.bindBuffer(gl.ARRAY_BUFFER, dc.normBuf);
+                gl.bufferSubData(gl.ARRAY_BUFFER, 0, sNorm);
+            }
+            dc.modelMat = ident;
+        } else {
+            dc.modelMat = sceneNodes[dc.nodeIdx] ? sceneNodes[dc.nodeIdx].worldMat : ident;
+        }
+    }
+}
+
+function renderSpeedVfx(vpMat, nowSec) {
+    if (!vfxEnabled || !unitRingGeo) return;
+    const isRunning = currentAnim && /run|fly/i.test(currentAnim.name);
+    const R = sceneRadius;
+    const cx = sceneCenter[0], cy = sceneCenter[1], cz = sceneCenter[2];
+    const yFloor = sceneMinY + 0.015;
+
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+    gl.depthMask(false);
+
+    // Expanding Ground Energy Waves
+    const numWaves = isRunning ? 3 : 1;
+    for (let i = 0; i < numWaves; i++) {
+        const phase = ((nowSec * (isRunning ? 1.5 : 0.6) + i / numWaves) % 1.0);
+        const s = R * (0.5 + phase * (isRunning ? 0.9 : 0.35));
+        const alpha = (1.0 - phase) * (isRunning ? 0.72 : 0.40);
+        const mat = mat4FromTRS([cx, yFloor + i * 0.01, cz], [0, 0, 0, 1], [s, 1, s]);
+        drawCallItem({
+            ...unitRingGeo, modelMat: mat, tex: whiteSolidTex,
+            baseColor: [0.15, 0.85, 1.0, alpha], alphaCutoff: 0.0, unlit: 1
+        }, vpMat);
+    }
+
+    // Wind / Speed Boost Particles streaking past when Running/Flying
+    if (isRunning) {
+        const numStreaks = 12;
+        for (let k = 0; k < numStreaks; k++) {
+            const phase = ((nowSec * 2.2 + k / numStreaks) % 1.0);
+            const angle = (k * 1.618) * Math.PI * 2;
+            const sideR = R * (0.55 + 0.45 * (k % 3) * 0.35);
+            const sx = cx + Math.cos(angle) * sideR;
+            const sy = yFloor + R * (0.2 + 0.75 * ((k * 0.37) % 1.0));
+            const sz = cz + R * (1.2 - phase * 2.8);
+            const matS = mat4FromTRS([sx, sy, sz], [0, 0, 0, 1], [R * 0.025, R * 0.025, R * 0.24]);
+            const col = (k % 2 === 0) ? [0.22, 0.90, 1.0, (1.0 - phase) * 0.85] : [1.0, 0.85, 0.25, (1.0 - phase) * 0.8];
+            drawCallItem({
+                ...unitSphereGeo, modelMat: matS, tex: whiteSolidTex,
+                baseColor: col, alphaCutoff: 0.0, unlit: 1
+            }, vpMat);
+        }
+    }
+
+    gl.depthMask(true);
+    gl.disable(gl.BLEND);
+}
+
+function drawCallItem(dc, vpMat) {
+    const mvp = mat4Multiply(vpMat, dc.modelMat);
+    gl.uniformMatrix4fv(shaderProgram.uMVP, false, mvp);
+    gl.uniformMatrix4fv(shaderProgram.uModel, false, dc.modelMat);
+    gl.uniform4fv(shaderProgram.uBaseColor, dc.baseColor);
+    gl.uniform1f(shaderProgram.uAlphaCutoff, dc.alphaCutoff);
+    gl.uniform1i(shaderProgram.uUnlit, dc.unlit || 0);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, dc.tex);
+    gl.uniform1i(shaderProgram.uTex, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, dc.posBuf);
+    gl.enableVertexAttribArray(shaderProgram.aPos);
+    gl.vertexAttribPointer(shaderProgram.aPos, 3, gl.FLOAT, false, 0, 0);
+
+    if (dc.normBuf) {
+        gl.bindBuffer(gl.ARRAY_BUFFER, dc.normBuf);
+        gl.enableVertexAttribArray(shaderProgram.aNorm);
+        gl.vertexAttribPointer(shaderProgram.aNorm, 3, gl.FLOAT, false, 0, 0);
+    } else {
+        gl.disableVertexAttribArray(shaderProgram.aNorm);
+        gl.vertexAttrib3f(shaderProgram.aNorm, 0, 1, 0);
+    }
+
+    if (dc.uvBuf) {
+        gl.bindBuffer(gl.ARRAY_BUFFER, dc.uvBuf);
+        gl.enableVertexAttribArray(shaderProgram.aUV);
+        gl.vertexAttribPointer(shaderProgram.aUV, 2, gl.FLOAT, false, 0, 0);
+    } else {
+        gl.disableVertexAttribArray(shaderProgram.aUV);
+        gl.vertexAttrib2f(shaderProgram.aUV, 0, 0);
+    }
+
+    const mode = wireframeMode ? gl.LINES : gl.TRIANGLES;
+    if (dc.idxBuf) {
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, dc.idxBuf);
+        gl.drawElements(mode, dc.count, dc.indexType, 0);
+    } else {
+        gl.drawArrays(mode, 0, dc.count);
+    }
+}
+
+function renderLoop(nowTs) {
+    requestAnimationFrame(renderLoop);
+    if (!gl || !shaderProgram) return;
+
+    const dt = Math.min(0.1, (nowTs - lastFrameTs) / 1000.0);
+    lastFrameTs = nowTs;
+
+    if (currentAnim && animPlaying) {
+        animTime = (animTime + dt * animSpeed) % currentAnim.duration;
+        evaluateSkeletalAnimation(animTime);
+        updateTimelineUI();
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = Math.floor(rect.width * dpr);
+    const h = Math.floor(rect.height * dpr);
+    if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w;
+        canvas.height = h;
+    }
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.clearColor(0.03, 0.07, 0.14, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    if (autoRotate) camYaw += 0.0065;
+
+    const eye = [
+        camTarget[0] + camDist * Math.cos(camPitch) * Math.sin(camYaw),
+        camTarget[1] + camDist * Math.sin(camPitch),
+        camTarget[2] + camDist * Math.cos(camPitch) * Math.cos(camYaw)
+    ];
+
+    const aspect = canvas.width / Math.max(canvas.height, 1);
+    const proj = mat4Perspective(40 * Math.PI / 180, aspect, sceneRadius * 0.02, sceneRadius * 40.0);
+    const view = mat4LookAt(eye, camTarget, [0, 1, 0]);
+    const vpMat = mat4Multiply(proj, view);
+
+    gl.useProgram(shaderProgram);
+
+    if (showPedestal) {
+        for (const pc of pedestalCalls) drawCallItem(pc, vpMat);
+    }
+    for (const dc of drawCalls) {
+        drawCallItem(dc, vpMat);
+    }
+    renderSpeedVfx(vpMat, nowTs * 0.001);
+}
+
+// ============================================================================
+// UI CONTROLLER
+// ============================================================================
+let toastTimer = null;
+function showToast(msg) {
+    const el = document.getElementById('skillToast');
+    el.textContent = msg;
+    el.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+function buildAnimationButtonsUI() {
+    const bar = document.getElementById('animButtonsBar');
+    let html = '<span class="deck-label">🐎 Động Tác Thú Cưỡi:</span>';
+    if (parsedAnimations.length === 0) {
+        html += '<span style="color:#94a3b8; font-size:0.8rem;">Mô hình tĩnh</span>';
+        bar.innerHTML = html;
+        return;
+    }
+    for (const anim of parsedAnimations) {
+        const lbl = formatAnimLabel(anim.name);
+        const cls = /run|fly/i.test(anim.name) ? 'skill-combo' : '';
+        html += `<button class="anim-btn ${cls}" data-anim="${anim.name}" onclick="onClickAnimBtn('${anim.name}')">${lbl}</button>`;
+    }
+    bar.innerHTML = html;
+}
+
+function onClickAnimBtn(animName) {
+    const anim = parsedAnimations.find(a => a.name === animName);
+    if (anim) setActiveAnimation(anim, true);
+}
+
+function setActiveAnimation(anim, showBanner = false) {
+    currentAnim = anim;
+    animTime = 0;
+    animPlaying = true;
+    document.getElementById('btnPlayPause').innerHTML = '⏸️ Tạm Dừng';
+    document.querySelectorAll('.anim-btn[data-anim]').forEach(btn => {
+        btn.classList.toggle('active', anim && btn.dataset.anim === anim.name);
+    });
+    if (anim && showBanner) {
+        const m = mountData.find(x => x.mount_id === activeMountId);
+        showToast(`${m ? m.name_vn : 'Thú Cưỡi'} ➔ ${formatAnimLabel(anim.name)}`);
+    }
+}
+
+function toggleAnimPlay() {
+    animPlaying = !animPlaying;
+    document.getElementById('btnPlayPause').innerHTML = animPlaying ? '⏸️ Tạm Dừng' : '▶️ Phát Tiếp';
+}
+
+function setAnimSpeed(val) {
+    animSpeed = parseFloat(val) || 1.0;
+}
+
+function scrubTimeline(val) {
+    if (!currentAnim) return;
+    animPlaying = false;
+    document.getElementById('btnPlayPause').innerHTML = '▶️ Phát Tiếp';
+    animTime = (parseFloat(val) / 1000.0) * currentAnim.duration;
+    evaluateSkeletalAnimation(animTime);
+    updateTimelineUI();
+}
+
+function updateTimelineUI() {
+    if (!currentAnim) return;
+    document.getElementById('animTimeline').value = Math.min(1000, Math.floor((animTime / currentAnim.duration) * 1000));
+    document.getElementById('animTimeLabel').textContent = `${animTime.toFixed(2)} / ${currentAnim.duration.toFixed(2)}s`;
+}
+
+function selectMount3D(mountId, scrollToTop = false) {
+    const m = mountData.find(x => x.mount_id === mountId);
+    if (!m) return;
+    activeMountId = mountId;
+
+    const animCount = (m.anim_clips || []).length;
+    document.getElementById('stageMountTitle').textContent = `[#${m.id}] ${m.name_vn} (${m.mesh})`;
+    document.getElementById('stageMountMeta').textContent =
+        `Package: ${m.upk} | AnimSet: ${m.animset} | Đa giác: ${m.tris.toLocaleString()} tris | Hoạt ảnh: ${animCount} clips | ${m.cat_label}`;
+    document.getElementById('btnDownloadGlb').href = m.glb_rel;
+
+    document.querySelectorAll('.quick-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.id === mountId));
+    document.querySelectorAll('.mount-card').forEach(card => card.classList.toggle('selected', card.dataset.id === mountId));
+
+    const overlay = document.getElementById('loadingOverlay');
+    document.getElementById('loadingText').textContent = `Đang nạp Thú Cưỡi 3D: ${m.name_vn}...`;
+    overlay.classList.remove('hidden');
+
+    if (scrollToTop) {
+        document.getElementById('stageSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    const oldScript = document.getElementById('dynamicGlbScript');
+    if (oldScript) oldScript.remove();
+    const s = document.createElement('script');
+    s.id = 'dynamicGlbScript';
+    s.src = m.js_rel;
+    s.onerror = () => {
+        document.getElementById('loadingText').textContent = `Không tìm thấy dữ liệu 3D: ${m.js_rel}`;
+    };
+    document.body.appendChild(s);
+}
+
+function stepMount(dir) {
+    if (!filteredList.length) return;
+    const idx = filteredList.findIndex(x => x.mount_id === activeMountId);
+    const nextIdx = idx === -1 ? 0 : (idx + dir + filteredList.length) % filteredList.length;
+    selectMount3D(filteredList[nextIdx].mount_id, false);
+}
+
+function buildQuickSelector() {
+    const bar = document.getElementById('quickSelectorBar');
+    let html = '<span class="quick-label">⭐ Thú Cưỡi Nổi Bật:</span>';
+    for (const meshName of featuredMeshes) {
+        const m = mountData.find(x => x.mesh === meshName);
+        if (!m) continue;
+        html += `<button class="quick-btn" data-id="${m.mount_id}" onclick="selectMount3D('${m.mount_id}', false)">#${m.id} ${m.name_vn.split(' (')[0]}</button>`;
+    }
+    bar.innerHTML = html;
+}
+
+function filterCategory(cat, btn) {
+    currentCategory = cat;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    applyFilters();
+}
+
+function applyFilters() {
+    const q = document.getElementById('searchInput').value.toLowerCase().trim();
+    filteredList = mountData.filter(m => {
+        if (currentCategory !== 'all') {
+            if (currentCategory === 'Shiny') {
+                if (!m.is_shiny) return false;
+            } else if (m.category !== currentCategory) {
+                return false;
+            }
+        }
+        if (!q) return true;
+        const hay = `${m.id} ${m.name_vn} ${m.name_en} ${m.mesh} ${m.cat_label}`.toLowerCase();
+        return hay.includes(q);
+    });
+    document.getElementById('resultCountText').textContent = `Hiển thị ${filteredList.length} / ${mountData.length} mô hình Thú Cưỡi 3D`;
+    renderGrid();
+}
+
+function renderGrid() {
+    const grid = document.getElementById('mountGrid');
+    grid.innerHTML = filteredList.map(m => {
+        const ac = (m.anim_clips || []).length;
+        const shinyBadge = m.is_shiny ? '<span class="shiny-pill">✨ SHINY</span>' : '';
+        return `
+        <article class="mount-card ${m.mount_id === activeMountId ? 'selected' : ''}" data-id="${m.mount_id}" onclick="selectMount3D('${m.mount_id}', true)">
+            <div class="card-preview">
+                <img src="${m.preview_rel}" alt="${m.name_vn}" loading="lazy">
+                <span class="idx-badge">#${String(m.id).padStart(2, '0')}</span>
+                <span class="cat-tag cat-${m.category}">${m.cat_label}</span>
+                <div class="preview-overlay">
+                    <span style="font-size:0.71rem; color:#fde047; font-weight:700;">🐎 ${ac} Động tác</span>
+                    <span class="play-3d-pill">🕹️ CƯỠI THỬ 3D</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="mount-title">${m.name_vn}${shinyBadge}</div>
+                <div class="mount-mesh-id">${m.mesh}</div>
+                <div class="mount-meta-row">
+                    <span>📐 ${m.tris.toLocaleString()} tris</span>
+                    <span>🎨 ${m.tex_count} tex</span>
+                    <span>💾 ${m.glb_size_kb} KB</span>
+                </div>
+            </div>
+        </article>`;
+    }).join('');
+}
+
+// Initialize
+initWebGL();
+buildQuickSelector();
+applyFilters();
+const defaultMount = mountData.find(x => x.mesh === "HT_ZQ_GuLeDun") || mountData[0];
+if (defaultMount) {
+    selectMount3D(defaultMount.mount_id, false);
+}
+</script>
+</body>
+</html>
